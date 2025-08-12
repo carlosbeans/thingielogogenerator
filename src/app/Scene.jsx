@@ -2,8 +2,24 @@
 
 import React from 'react'
 import Test from './Test'
+import { Points, PointMaterial } from '@react-three/drei'
+import { useMemo } from 'react'
 
 export default function Scene() {
+
+  
+  const particles = useMemo(() => {
+      const temp = []
+      for (let i = 0; i < 300; i++) {
+        // Generate x, y, z coordinates (3 values per particle)
+        temp.push((Math.random() - 0.5) * 20) // x
+        temp.push((Math.random() - 0.5) * 20) // y  
+        temp.push((Math.random() - 0.5) * 20) // z
+      }
+      return new Float32Array(temp)
+    }, [])
+
+
   return (
     <>
       <ambientLight intensity={0.16} />
@@ -18,7 +34,11 @@ export default function Scene() {
         target-position={[0, 0, 0]}
       />
 
-      <fog attach="fog" args={["#000000", 5, 20]} />
+      <Points positions={particles}>
+        <PointMaterial transparent opacity={0.6} size={0.02} sizeAttenuation color="#ffffff" />
+      </Points>
+
+      <fogExp2 attach="fog" args={['#404040', 0.02]} />
 
       <mesh position={[0, 0, 0]} receiveShadow={true} rotation={[-1.57, 0, 0]}>
         <planeGeometry args={[10, 10]} />
