@@ -22,11 +22,18 @@ export default function Home() {
             <OrbitControls />
             <Scene />
           </Canvas>
-          <div className="logoUploadContainer p-40">
-            <input type="file" />
-            <button>Upload</button>
-            <div className="disclaimer">
-              Don't be a dick, upload an svg file with a transparent background.
+          <div className="logoUploadContainer w-screen absolute bottom-0">
+            <div className="dragRegion backdrop-blur-xs border border-dashed p-24 m-16 flex flex-col items-center rounded-lg">              
+              <div className="flex flex-row items-center">
+              <input type="file" className="bg-white" />
+                <button className="bg-white button button-primary rounded text-black p-2">
+                  Upload
+                </button>
+              </div>
+              <div className="disclaimer">
+                Don't be a dick, upload an svg file with a transparent
+                background.
+              </div>
             </div>
           </div>
         </div>
