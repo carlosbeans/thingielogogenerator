@@ -72,9 +72,6 @@ export default function Scene() {
     <>
       <ambientLight intensity={0.1} />
 
-
-
-
       <Circle
         ref={lightRef} args={[5, 5]} position={[0, 0, -16]} transparent={true} scale={[1.13, 0.7, 1]}>
         <meshBasicMaterial color={"white"} />
