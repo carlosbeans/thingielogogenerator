@@ -17,7 +17,7 @@ import * as THREE from 'three'
 
 export default function Scene() {
 
-  // const lutTexture = useLoader(THREE.TextureLoader, '/luts/my_blue_midtones.cube.png')
+  //  const lutTexture = useLoader(THREE.TextureLoader, '/luttt.png')
   const svgTexture = useLoader(THREE.TextureLoader, '/logo.svg')
 
   // inverted shader
