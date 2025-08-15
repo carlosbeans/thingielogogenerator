@@ -23,8 +23,8 @@ export default function Scene() {
   const invertedAlphaMaterial = useMemo(() => {
     if (!svgTexture) return null; // Guard against initial render
 
-    const meshSize = [2, 1]; // Box geometry dimensions
-    const textureSize = [svgTexture.image.width, svgTexture.image.height];
+    const meshSize = [1, 1]; // Box geometry dimensions
+    const textureSize = [svgTexture.image.width, svgTexture.image.height]; // 300 117
 
     return new THREE.ShaderMaterial({
       uniforms: {
@@ -32,7 +32,7 @@ export default function Scene() {
         color: { value: new THREE.Color('black') },
         uMeshSize: { value: new THREE.Vector2(meshSize[0], meshSize[1]) },
         uTextureSize: { value: new THREE.Vector2(textureSize[0], textureSize[1]) },
-      },
+      }, 
       vertexShader: `
         varying vec2 vUv;
         void main() {
@@ -48,29 +48,40 @@ export default function Scene() {
         varying vec2 vUv;
 
         void main() {
-          float meshAspect = uMeshSize.x / uMeshSize.y;
-          float textureAspect = uTextureSize.x / uTextureSize.y;
+          float meshAspect    = uMeshSize.x / uMeshSize.y;       // mesh W/H
+          float textureAspect = uTextureSize.x / uTextureSize.y; // tex  W/H
+          
           vec2 scaledUv = vUv;
-
-          if (textureAspect > meshAspect) {
-            scaledUv.y = (vUv.y - 0.5) * (meshAspect / textureAspect) + 0.5;
+          
+          if (meshAspect > textureAspect) {
+              // Mesh is wider than texture → fit height (pillarbox on sides)
+              float scaleX = meshAspect / textureAspect; // > 1.0
+              scaledUv.x = (vUv.x - 0.5) * scaleX + 0.5;
           } else {
-            scaledUv.x = (vUv.x - 0.5) * (textureAspect / meshAspect) + 0.5;
+              // Mesh is taller than texture → fit width (letterbox on top/bottom)
+              float scaleY = textureAspect / meshAspect; // > 1.0
+              scaledUv.y = (vUv.y - 0.5) * scaleY + 0.5;
           }
           
-          if (scaledUv.x < 0.0 || scaledUv.x > 1.0 || scaledUv.y < 0.0 || scaledUv.y > 1.0) {
-            discard;
-          }
-
-          vec4 texColor = texture2D(map, scaledUv);
+          // Create in-bounds mask to avoid edge smearing
+          float inX = step(0.0, scaledUv.x) * step(scaledUv.x, 1.0);
+          float inY = step(0.0, scaledUv.y) * step(scaledUv.y, 1.0);
+          float inBounds = inX * inY;
+          
+          // Sample texture only when inside bounds, else transparent padding
+          vec4 texColor = inBounds > 0.5 ? texture2D(map, scaledUv) : vec4(0.0);
+          
+          // Invert alpha from texture
           float invertedAlpha = 1.0 - texColor.a;
-
+          
+          // Optional threshold for alpha cutoff
           if (invertedAlpha < 0.5) {
-            discard;
+              discard;
           }
-
+          
+          // Output color with inverted alpha
           gl_FragColor = vec4(color, invertedAlpha);
-        }
+      }
       `,
       transparent: true
     });
@@ -85,6 +96,14 @@ export default function Scene() {
 
 
   const lightRef = useRef()
+
+  const [lightReady, setLightReady] = React.useState(false);
+
+    React.useEffect(() => {
+      if (lightRef.current) {
+        setLightReady(true);
+      }
+    }, []);
 
   const particles = useMemo(() => {
     const temp = []
@@ -103,7 +122,7 @@ export default function Scene() {
       <ambientLight intensity={0.1} />
 
       <Circle
-        ref={lightRef} args={[5, 5]} position={[0, 0, -16]} transparent={true} scale={[1.13, 0.7, 1]}>
+        ref={lightRef} args={[25, 25]} position={[0, 0, -16]} transparent={true} scale={[.2, .2, 1]}>
         <meshBasicMaterial color={"white"} />
       </Circle>
 
@@ -115,7 +134,7 @@ export default function Scene() {
 
 
       <mesh transparent castShadow={true} position={[-0.07, 1.37, 0]}>
-        <boxGeometry args={[2, 1, .01]} />
+        <boxGeometry args={[1, 1, .01]} />
          <primitive object={invertedAlphaMaterial} attach="material" />
       </mesh>
 
@@ -128,7 +147,7 @@ export default function Scene() {
           luminanceSmoothing={0.9}
         />
         <Noise opacity={0.03} scale={0.005} />
-        {lightRef.current && (
+        {lightReady && (
           <GodRays
             sun={lightRef}
             blendFunction={BlendFunction.Screen} // The blend function of this effect.
@@ -143,7 +162,7 @@ export default function Scene() {
             kernelSize={KernelSize.SMALL} // The blur kernel size. Has no effect if blur is disabled.
             blur={true} // Whether the god rays should be blurred to reduce artifacts.
           />
-        )}
+          )}
       </EffectComposer>
     </>
   )
