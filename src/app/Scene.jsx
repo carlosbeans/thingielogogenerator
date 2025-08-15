@@ -14,12 +14,25 @@ import { MeshTransmissionMaterial } from '@react-three/drei'
 import { useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
 import { Ramp, RampType } from '@react-three/postprocessing'
+import { useEffect } from 'react'
 
 
 export default function Scene() {
 
   //  const lutTexture = useLoader(THREE.TextureLoader, '/luttt.png')
   const svgTexture = useLoader(THREE.TextureLoader, '/logo.svg')
+  svgTexture.anisotropy = 16 // Max supported by GPU
+svgTexture.needsUpdate = true
+
+    // Configure texture settings after it loads
+  // useEffect(() => {
+  //   if (svgTexture) {
+  //     svgTexture.generateMipmaps = false
+  //     svgTexture.minFilter = THREE.LinearFilter
+  //     svgTexture.magFilter = THREE.LinearFilter
+  //     svgTexture.anisotropy = 16
+  //   }
+  // }, [svgTexture])
 
   // inverted shader
   const invertedAlphaMaterial = useMemo(() => {
@@ -27,6 +40,8 @@ export default function Scene() {
 
     const meshSize = [1, 1]; // Box geometry dimensions
     const textureSize = [svgTexture.image.width, svgTexture.image.height]; // 300 117
+
+
 
     return new THREE.ShaderMaterial({
       uniforms: {
@@ -142,7 +157,10 @@ export default function Scene() {
 
       <mesh transparent castShadow={true} position={[-0.07, 1.37, 0]}>
         <boxGeometry args={[12, 12, .01]} />
-         <primitive object={invertedAlphaMaterial} attach="material" />
+         <primitive 
+         object={invertedAlphaMaterial} 
+         attach="material" 
+         />
       </mesh>
 
 
