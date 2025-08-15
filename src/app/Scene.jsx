@@ -3,7 +3,7 @@
 import React from 'react'
 import Test from './Test'
 import { Points, PointMaterial } from '@react-three/drei'
-import { EffectComposer, Bloom, GodRays, Noise } from '@react-three/postprocessing'
+import { EffectComposer, Bloom, GodRays, Noise, LUT } from '@react-three/postprocessing'
 import { useMemo } from 'react'
 import { useRef } from 'react'
 import { BlendFunction } from 'postprocessing'
@@ -17,6 +17,7 @@ import * as THREE from 'three'
 
 export default function Scene() {
 
+  // const lutTexture = useLoader(THREE.TextureLoader, '/luts/my_blue_midtones.cube.png')
   const svgTexture = useLoader(THREE.TextureLoader, '/logo.svg')
 
   // inverted shader
@@ -51,7 +52,7 @@ export default function Scene() {
           float meshAspect    = uMeshSize.x / uMeshSize.y;       // mesh W/H
           float textureAspect = uTextureSize.x / uTextureSize.y; // tex  W/H
           
-          vec2 scaledUv = vUv;
+          vec2 scaledUv = (vUv - 0.5) * 1.5 + 0.5;
           
           if (meshAspect > textureAspect) {
               // Mesh is wider than texture → fit height (pillarbox on sides)
@@ -134,13 +135,14 @@ export default function Scene() {
 
 
       <mesh transparent castShadow={true} position={[-0.07, 1.37, 0]}>
-        <boxGeometry args={[1, 1, .01]} />
+        <boxGeometry args={[2, 2, .01]} />
          <primitive object={invertedAlphaMaterial} attach="material" />
       </mesh>
 
 
 
       <EffectComposer multisampling={0}>
+        {/* <LUT lut={lutTexture} tetrahedralInterpolation={true}  /> */}
         <Bloom
           intensity={0.5}
           luminanceThreshold={0.9}
