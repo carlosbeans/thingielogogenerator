@@ -53,8 +53,8 @@ export default function Scene() {
           float meshAspect    = uMeshSize.x / uMeshSize.y;       // mesh W/H
           float textureAspect = uTextureSize.x / uTextureSize.y; // tex  W/H
           
-          vec2 scaledUv = (vUv - 0.5) * 1.5 + 0.5;
-          
+          vec2 scaledUv = vUv;
+
           if (meshAspect > textureAspect) {
               // Mesh is wider than texture → fit height (pillarbox on sides)
               float scaleX = meshAspect / textureAspect; // > 1.0
@@ -64,7 +64,12 @@ export default function Scene() {
               float scaleY = textureAspect / meshAspect; // > 1.0
               scaledUv.y = (vUv.y - 0.5) * scaleY + 0.5;
           }
+
+          // Apply uniform zoom after aspect ratio correction
+          scaledUv = (scaledUv - 0.5) * 4.0 + 0.5;
+
           
+
           // Create in-bounds mask to avoid edge smearing
           float inX = step(0.0, scaledUv.x) * step(scaledUv.x, 1.0);
           float inY = step(0.0, scaledUv.y) * step(scaledUv.y, 1.0);
@@ -124,7 +129,7 @@ export default function Scene() {
       <ambientLight intensity={0.1} />
 
       <Circle
-        ref={lightRef} args={[25, 25]} position={[0, 0, -16]} transparent={true} scale={[.2, .2, 1]}>
+        ref={lightRef} args={[25, 25]} position={[0, 0, -16]} transparent={true} scale={[.5, .5, 1]}>
         <meshBasicMaterial color={"#b3c1eb"} />
       </Circle>
 
@@ -136,7 +141,7 @@ export default function Scene() {
 
 
       <mesh transparent castShadow={true} position={[-0.07, 1.37, 0]}>
-        <boxGeometry args={[2, 2, .01]} />
+        <boxGeometry args={[12, 12, .01]} />
          <primitive object={invertedAlphaMaterial} attach="material" />
       </mesh>
 
