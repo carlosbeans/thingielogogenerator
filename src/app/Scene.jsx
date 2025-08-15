@@ -3,7 +3,7 @@
 import React from 'react'
 import Test from './Test'
 import { Points, PointMaterial } from '@react-three/drei'
-import { EffectComposer, Bloom, GodRays } from '@react-three/postprocessing'
+import { EffectComposer, Bloom, GodRays, Noise } from '@react-three/postprocessing'
 import { useMemo } from 'react'
 import { useRef } from 'react'
 import { BlendFunction } from 'postprocessing'
@@ -20,37 +20,67 @@ export default function Scene() {
   const svgTexture = useLoader(THREE.TextureLoader, '/logo.svg')
 
   // inverted shader
-  const invertedAlphaMaterial = new THREE.ShaderMaterial({
-  uniforms: {
-    map: { value: svgTexture },
-    color: { value: new THREE.Color('black') }
-  },
-  vertexShader: `
-    varying vec2 vUv;
-    void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `,
-    fragmentShader: `
-    uniform sampler2D map;
-    uniform vec3 color;
-    varying vec2 vUv;
-    void main() {
-      vec4 texColor = texture2D(map, vUv);
-      float invertedAlpha = 1.0 - texColor.a;
+  const invertedAlphaMaterial = useMemo(() => {
+    if (!svgTexture) return null; // Guard against initial render
 
-      // ✨ FIX: If the pixel is supposed to be see-through,
-      // discard it entirely so it doesn't block the god rays.
-      if (invertedAlpha < 0.5) {
-        discard;
-      }
+    const meshSize = [2, 1]; // Box geometry dimensions
+    const textureSize = [svgTexture.image.width, svgTexture.image.height];
 
-      gl_FragColor = vec4(color, invertedAlpha);
-    }
-  `,
-  transparent: true
-})
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        map: { value: svgTexture },
+        color: { value: new THREE.Color('black') },
+        uMeshSize: { value: new THREE.Vector2(meshSize[0], meshSize[1]) },
+        uTextureSize: { value: new THREE.Vector2(textureSize[0], textureSize[1]) },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D map;
+        uniform vec3 color;
+        uniform vec2 uMeshSize;
+        uniform vec2 uTextureSize;
+        varying vec2 vUv;
+
+        void main() {
+          float meshAspect = uMeshSize.x / uMeshSize.y;
+          float textureAspect = uTextureSize.x / uTextureSize.y;
+          vec2 scaledUv = vUv;
+
+          if (textureAspect > meshAspect) {
+            scaledUv.y = (vUv.y - 0.5) * (meshAspect / textureAspect) + 0.5;
+          } else {
+            scaledUv.x = (vUv.x - 0.5) * (textureAspect / meshAspect) + 0.5;
+          }
+          
+          if (scaledUv.x < 0.0 || scaledUv.x > 1.0 || scaledUv.y < 0.0 || scaledUv.y > 1.0) {
+            discard;
+          }
+
+          vec4 texColor = texture2D(map, scaledUv);
+          float invertedAlpha = 1.0 - texColor.a;
+
+          if (invertedAlpha < 0.5) {
+            discard;
+          }
+
+          gl_FragColor = vec4(color, invertedAlpha);
+        }
+      `,
+      transparent: true
+    });
+  }, [svgTexture]);
+
+  // Make sure to handle the case where the material is not yet created
+  if (!invertedAlphaMaterial) {
+    return null; 
+  }
+
 
 
 
@@ -100,6 +130,7 @@ export default function Scene() {
           luminanceThreshold={0.9}
           luminanceSmoothing={0.9}
         />
+        <Noise opacity={0.03} scale={0.005} />
         {lightRef.current && (
           <GodRays
             sun={lightRef}
@@ -108,10 +139,10 @@ export default function Scene() {
             density={0.8} // The density of the light rays.
             decay={0.9} // An illumination decay factor.
             weight={0.4} // A light ray weight factor.
-            exposure={0.6} // A constant attenuation coefficient.
+            exposure={0.1} // A constant attenuation coefficient.
             clampMax={1} // An upper bound for the saturation of the overall effect.
             //width={Resizer.AUTO_SIZE} // Render width.
-            // height={Resizer.AUTO_SIZE} // Render height.
+            //height={Resizer.AUTO_SIZE} // Render height.
             kernelSize={KernelSize.SMALL} // The blur kernel size. Has no effect if blur is disabled.
             blur={true} // Whether the god rays should be blurred to reduce artifacts.
           />
