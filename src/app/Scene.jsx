@@ -154,8 +154,8 @@ export default function Scene() {
 
         <HueSaturation
             blendFunction={BlendFunction.SCREEN} // blend mode
-            hue={6.2} // hue in radians
-            saturation={.85} // saturation in radians
+            hue={6.3} // hue in radians
+            saturation={.86} // saturation in radians
           />
 
         <Bloom
