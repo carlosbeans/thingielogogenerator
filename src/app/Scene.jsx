@@ -3,7 +3,7 @@
 import React from 'react'
 import Test from './Test'
 import { Points, PointMaterial } from '@react-three/drei'
-import { EffectComposer, Bloom, GodRays, Noise, LUT } from '@react-three/postprocessing'
+import { EffectComposer, Bloom, GodRays, Noise, LUT, HueSaturation, ColorAverage, Sepia } from '@react-three/postprocessing'
 import { useMemo } from 'react'
 import { useRef } from 'react'
 import { BlendFunction } from 'postprocessing'
@@ -13,6 +13,7 @@ import { Resizer } from 'postprocessing'
 import { MeshTransmissionMaterial } from '@react-three/drei'
 import { useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
+import { Ramp, RampType } from '@react-three/postprocessing'
 
 
 export default function Scene() {
@@ -124,12 +125,12 @@ export default function Scene() {
 
       <Circle
         ref={lightRef} args={[25, 25]} position={[0, 0, -16]} transparent={true} scale={[.2, .2, 1]}>
-        <meshBasicMaterial color={"white"} />
+        <meshBasicMaterial color={"#b3c1eb"} />
       </Circle>
 
-      <Points positions={particles}>
-        <PointMaterial transparent opacity={0.6} size={0.02} sizeAttenuation color="#ffffff" />
-      </Points>
+      {/* <Points positions={particles}>
+        <PointMaterial transparent opacity={0.6} size={0.02} sizeAttenuation color="#0000009a" />
+      </Points> */}
 
 
 
@@ -143,8 +144,17 @@ export default function Scene() {
 
       <EffectComposer multisampling={0}>
         {/* <LUT lut={lutTexture} tetrahedralInterpolation={true}  /> */}
+
+        {/* <Sepia intensity={0.4} blendFunction={BlendFunction.NORMAL} /> */}
+
+        <HueSaturation
+            blendFunction={BlendFunction.SCREEN} // blend mode
+            hue={6.2} // hue in radians
+            saturation={.85} // saturation in radians
+          />
+
         <Bloom
-          intensity={0.5}
+          intensity={3.0}
           luminanceThreshold={0.9}
           luminanceSmoothing={0.9}
         />
@@ -165,6 +175,8 @@ export default function Scene() {
             blur={true} // Whether the god rays should be blurred to reduce artifacts.
           />
           )}
+
+   
       </EffectComposer>
     </>
   )
