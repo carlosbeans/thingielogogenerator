@@ -15,6 +15,9 @@ import { useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
 import { Ramp, RampType } from '@react-three/postprocessing'
 import { useEffect } from 'react'
+// import cloud from drie
+import { Clouds, Cloud, Float } from "@react-three/drei"
+import Plastic from './Plastic'
 
 
 export default function Scene() {
@@ -22,9 +25,9 @@ export default function Scene() {
   //  const lutTexture = useLoader(THREE.TextureLoader, '/luttt.png')
   const svgTexture = useLoader(THREE.TextureLoader, '/logo.svg')
   svgTexture.anisotropy = 16 // Max supported by GPU
-svgTexture.needsUpdate = true
+  svgTexture.needsUpdate = true
 
-    // Configure texture settings after it loads
+  // Configure texture settings after it loads
   // useEffect(() => {
   //   if (svgTexture) {
   //     svgTexture.generateMipmaps = false
@@ -49,7 +52,7 @@ svgTexture.needsUpdate = true
         color: { value: new THREE.Color('black') },
         uMeshSize: { value: new THREE.Vector2(meshSize[0], meshSize[1]) },
         uTextureSize: { value: new THREE.Vector2(textureSize[0], textureSize[1]) },
-      }, 
+      },
       vertexShader: `
         varying vec2 vUv;
         void main() {
@@ -111,7 +114,7 @@ svgTexture.needsUpdate = true
 
   // Make sure to handle the case where the material is not yet created
   if (!invertedAlphaMaterial) {
-    return null; 
+    return null;
   }
 
 
@@ -121,11 +124,11 @@ svgTexture.needsUpdate = true
 
   const [lightReady, setLightReady] = React.useState(false);
 
-    React.useEffect(() => {
-      if (lightRef.current) {
-        setLightReady(true);
-      }
-    }, []);
+  React.useEffect(() => {
+    if (lightRef.current) {
+      setLightReady(true);
+    }
+  }, []);
 
   const particles = useMemo(() => {
     const temp = []
@@ -141,7 +144,7 @@ svgTexture.needsUpdate = true
 
   return (
     <>
-      <ambientLight intensity={0.1} />
+      <ambientLight intensity={15} />
 
       <Circle
         ref={lightRef} args={[25, 25]} position={[0, 0, -16]} transparent={true} scale={[.5, .5, 1]}>
@@ -149,21 +152,28 @@ svgTexture.needsUpdate = true
       </Circle>
 
       {/* <Points positions={particles}>
-        <PointMaterial transparent opacity={0.6} size={0.02} sizeAttenuation color="#0000009a" />
+        <PointMaterial transparent opacity={.1} size={0.02} sizeAttenuation color="black" />
       </Points> */}
 
 
-
+      <Float
+        speed={2} // Animation speed (default: 1)
+        rotationIntensity={1.8} // XYZ rotation intensity (default: 1)
+        floatIntensity={1.8} position={[0, 2, 2.52]} // Up/down float intensity (default: 1)
+      >
+        <Cloud opacity={0.02} seed={1} scale={1} volume={5} color="#b3c1eb" fade={150} position={[0, 0, 0]} />
+      </Float>
 
       <mesh transparent castShadow={true} position={[-0.07, 1.37, 0]}>
         <boxGeometry args={[12, 12, .01]} />
-         <primitive 
-         object={invertedAlphaMaterial} 
-         attach="material" 
-         />
+        <primitive
+          object={invertedAlphaMaterial}
+          attach="material"
+        />
       </mesh>
 
 
+      {/* <Plastic position={[0, 0, 0]} /> */}
 
       <EffectComposer multisampling={0}>
         {/* <LUT lut={lutTexture} tetrahedralInterpolation={true}  /> */}
@@ -171,10 +181,10 @@ svgTexture.needsUpdate = true
         {/* <Sepia intensity={0.4} blendFunction={BlendFunction.NORMAL} /> */}
 
         <HueSaturation
-            blendFunction={BlendFunction.SCREEN} // blend mode
-            hue={6.3} // hue in radians
-            saturation={.86} // saturation in radians
-          />
+          blendFunction={BlendFunction.SCREEN} // blend mode
+          hue={6.4} // hue in radians
+          saturation={.87} // saturation in radians
+        />
 
         <Bloom
           intensity={3.0}
@@ -197,9 +207,9 @@ svgTexture.needsUpdate = true
             kernelSize={KernelSize.SMALL} // The blur kernel size. Has no effect if blur is disabled.
             blur={true} // Whether the god rays should be blurred to reduce artifacts.
           />
-          )}
+        )}
 
-   
+
       </EffectComposer>
     </>
   )
