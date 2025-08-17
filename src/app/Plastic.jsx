@@ -3,6 +3,7 @@ import { shaderMaterial } from '@react-three/drei'
 import { extend, useFrame } from '@react-three/fiber'
 import { useRef } from 'react'
 
+
 const NodeToyMaterial = shaderMaterial(
   {
     _sinTime: new THREE.Vector4(),
@@ -171,10 +172,27 @@ export default function Plastic() {
 
       const materialRef = useRef()
 
-  return (
-    <mesh scale={25} position={[0, 0, -1.33]}>
-      <planeGeometry args={[1, 1, 1]} />
-      <nodeToyMaterial ref={materialRef} />
-    </mesh>
-  )
+      useFrame((state) => {
+            if (materialRef.current) {
+            const speed = 0.2; // Adjust this value to control speed (lower = slower)
+            const time = state.clock.getElapsedTime() * speed; // Slow down time
+            
+            materialRef.current._sinTime = new THREE.Vector4(
+                  Math.sin(time * 1),    // x: base frequency
+                  Math.sin(time * 2),     // y: 2x frequency
+                  Math.sin(time * 0.5),    // z: 0.5x frequency
+                  Math.sin(time * 1.5)     // w: 1.5x frequency
+            );
+            
+            // Optional: Force uniform update if needed (usually automatic in R3F)
+            materialRef.current.uniformsNeedUpdate = true;
+            }
+      });
+
+      return (
+            <mesh scale={3.8} position={[0, 1, -1.33]}>
+                  <planeGeometry args={[1, 1, 1]} />
+                  <nodeToyMaterial ref={materialRef} />
+            </mesh>
+      )
 }
