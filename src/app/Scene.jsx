@@ -3,7 +3,7 @@
 import React from 'react'
 import Test from './Test'
 import { Points, PointMaterial } from '@react-three/drei'
-import { EffectComposer, Bloom, GodRays, Noise, LUT, HueSaturation, ColorAverage, Sepia } from '@react-three/postprocessing'
+import { EffectComposer, Bloom, BrightnessContrast, GodRays, Noise, LUT, HueSaturation, ColorAverage, Sepia } from '@react-three/postprocessing'
 import { useMemo } from 'react'
 import { useRef } from 'react'
 import { BlendFunction } from 'postprocessing'
@@ -144,7 +144,7 @@ export default function Scene() {
 
   return (
     <>
-      <ambientLight intensity={15} />
+      <ambientLight intensity={10} />
 
       <Circle
         ref={lightRef} args={[25, 25]} position={[0, 0, -16]} transparent={true} scale={[.5, .5, 1]}>
@@ -161,7 +161,7 @@ export default function Scene() {
         rotationIntensity={1.8} // XYZ rotation intensity (default: 1)
         floatIntensity={1.8} position={[0, 2, 2.52]} // Up/down float intensity (default: 1)
       >
-        <Cloud opacity={0.02} seed={1} scale={1} volume={5} color="#b3c1eb" fade={150} position={[0, 0, 0]} />
+        <Cloud opacity={0.03} seed={1} scale={1} volume={5} color="#b3c1eb" fade={150} position={[0, 0, 0]} />
       </Float>
 
       <mesh transparent castShadow={true} position={[-0.07, 1.37, 0]}>
@@ -173,17 +173,21 @@ export default function Scene() {
       </mesh>
 
 
-      {/* <Plastic position={[0, 0, 0]} /> */}
+      <Plastic position={[0, 0, 0]} />
 
       <EffectComposer multisampling={0}>
         {/* <LUT lut={lutTexture} tetrahedralInterpolation={true}  /> */}
 
         {/* <Sepia intensity={0.4} blendFunction={BlendFunction.NORMAL} /> */}
+        <BrightnessContrast
+            brightness={0} // brightness. min: -1, max: 1
+            contrast={.05} // contrast: min -1, max: 1
+          />
 
         <HueSaturation
           blendFunction={BlendFunction.SCREEN} // blend mode
           hue={6.4} // hue in radians
-          saturation={.87} // saturation in radians
+          saturation={.86} // saturation in radians
         />
 
         <Bloom
