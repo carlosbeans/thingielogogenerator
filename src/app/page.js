@@ -3,42 +3,112 @@
 import { Canvas } from "@react-three/fiber";
 import Scene from "./Scene";
 import { OrbitControls } from "@react-three/drei";
+import { useRef, useState, useCallback } from "react";
 
 export default function Home() {
-     return (
-          <main className="w-screen h-screen">
-               <div className="flex flex-col h-screen">
-                    <div className="logoPreviewContainer h-screen flex flex-col">
-                         <Canvas
-                              shadows
-                              dpr={[1, 2]}
-                              gl={{
-                                   antialias: true,
-                                   alpha: false,
-                                   preserveDrawingBuffer: false,
-                              }}
-                              camera={{ fov: 45 }}
-                         >
-                              <color attach="background" args={["#000000"]} />
-                              <OrbitControls />
-                              <Scene />
-                         </Canvas>
-                         <div className="logoUploadContainer w-screen absolute bottom-0">
-                              <div className="dragRegion backdrop-blur-xs border border-dashed p-24 m-16 flex flex-col items-center rounded-lg">
-                                   <div className="flex flex-row items-center">
-                                        <input type="file" className="bg-white" />
-                                        <button className="bg-white button button-primary rounded text-black p-2">
-                                             Upload
-                                        </button>
-                                   </div>
-                                   <div className="disclaimer">
-                                        Don't be a dick, upload an svg file with a transparent
-                                        background.
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
-               </div>
-          </main>
-     );
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
+  const dropZoneRef = useRef(null);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) {
+      setIsDragging(true);
+    }
+  }, [isDragging]);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    const files = e.dataTransfer.files;
+    if (files.length) {
+      handleFiles(files);
+    }
+  }, []);
+
+  const handleFileInput = useCallback((e) => {
+    const files = e.target.files;
+    if (files.length) {
+      handleFiles(files);
+    }
+  }, []);
+
+  const handleFiles = (files) => {
+    const file = files[0];
+    if (file.type === 'image/svg+xml') {
+      // Handle the SVG file
+      console.log('SVG file selected:', file);
+      // You can add your file processing logic here
+    } else {
+      alert('Please upload an SVG file');
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  return (
+    <main className="w-screen h-screen">
+      <div className="flex flex-col h-screen">
+        <div className="logoPreviewContainer h-screen flex flex-col">
+          <Canvas
+            shadows
+            dpr={[1, 2]}
+            gl={{
+              antialias: true,
+              alpha: false,
+              preserveDrawingBuffer: false,
+            }}
+            camera={{ fov: 45 }}
+          >
+            <color attach="background" args={["#000000"]} />
+            <OrbitControls />
+            <Scene />
+          </Canvas>
+          <div className="logoUploadContainer w-screen absolute bottom-0">
+            <div 
+              ref={dropZoneRef}
+              className={`dragRegion backdrop-blur-xs border-2 border-dashed p-24 m-16 flex flex-col items-center rounded-lg transition-colors duration-200 ${isDragging ? 'border-blue-500 bg-blue-50/30' : 'border-gray-300'}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={triggerFileInput}
+            >
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                className="hidden" 
+                accept=".svg"
+                onChange={handleFileInput}
+              />
+              <div className="flex flex-col items-center">
+                <div className="text-white mb-4 text-center">
+                  {isDragging ? 'Drop your SVG file here' : 'Drag & drop an SVG file here, or click to select'}
+                </div>
+                <button 
+                  className="bg-white hover:bg-gray-100 text-black font-medium py-2 px-4 rounded transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Select File
+                </button>
+              </div>
+              <div className="disclaimer mt-4 text-gray-300 text-sm text-center">
+                Please upload an SVG file with a transparent background.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
 }
