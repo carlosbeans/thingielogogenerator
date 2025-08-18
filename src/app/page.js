@@ -7,6 +7,7 @@ import { useRef, useState, useCallback } from "react";
 
 export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
+  const [fileName, setFileName] = useState(null);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
 
@@ -44,11 +45,11 @@ export default function Home() {
 
   const handleFiles = (files) => {
     const file = files[0];
-    if (file.type === 'image/svg+xml') {
-      // Handle the SVG file
-      console.log('SVG file selected:', file);
+    if (file && file.type === 'image/svg+xml') {
+      setFileName(file.name);
       // You can add your file processing logic here
     } else {
+      setFileName(null);
       alert('Please upload an SVG file');
     }
   };
@@ -75,15 +76,22 @@ export default function Home() {
             <OrbitControls />
             <Scene />
           </Canvas>
-          <div className="logoUploadContainer w-screen absolute bottom-0">
+          <div className="logoUploadContainer absolute bottom-0 w-screen flex justify-center">
             <div 
               ref={dropZoneRef}
-              className={`dragRegion backdrop-blur-xs border-2 border-dashed p-24 m-16 flex flex-col items-center rounded-lg transition-colors duration-200 ${isDragging ? 'border-blue-500 bg-blue-50/30' : 'border-gray-300'}`}
+              className={`dragRegion w-1/3 backdrop-blur-sm bg-white/5 p-16 m-24 flex flex-col items-center rounded-lg transition-colors duration-200 ${isDragging ? 'border-blue-500 bg-blue-50/30' : 'border-gray-300'}`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={triggerFileInput}
             >
+            <div className="filePreviewContainer text-center mb-4">
+
+                <div className="text-white bg-black/30 px-4 py-2 rounded-md">
+                  {fileName}
+                </div>
+              
+            </div>
               <input 
                 ref={fileInputRef}
                 type="file" 
@@ -93,17 +101,23 @@ export default function Home() {
               />
               <div className="flex flex-col items-center">
                 <div className="text-white mb-4 text-center">
-                  {isDragging ? 'Drop your SVG file here' : 'Drag & drop an SVG file here, or click to select'}
+                  {fileName ? (
+                    <span className="font-medium">{fileName}</span>
+                  ) : isDragging ? (
+                    'Drop your SVG file here'
+                  ) : (
+                    'Drag & drop an SVG file here, or click to select'
+                  )}
                 </div>
-                <button 
+                {/* <button 
                   className="bg-white hover:bg-gray-100 text-black font-medium py-2 px-4 rounded transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
                   Select File
-                </button>
+                </button> */}
               </div>
-              <div className="disclaimer mt-4 text-gray-300 text-sm text-center">
-                Please upload an SVG file with a transparent background.
+              <div className="disclaimer text-gray-500 text-sm text-center">
+                Must be an SVG with a transparent background
               </div>
             </div>
           </div>
