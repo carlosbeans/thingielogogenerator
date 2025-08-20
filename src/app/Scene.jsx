@@ -164,6 +164,7 @@ export default function Scene() {
         <Cloud opacity={0.03} seed={1} scale={1} volume={5} color="#b3c1eb" fade={150} position={[0, 0, 0]} />
       </Float>
 
+
       <mesh transparent castShadow={true} position={[-0.07, 1.37, 0]}>
         <boxGeometry args={[12, 12, .01]} />
         <primitive
