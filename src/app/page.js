@@ -109,12 +109,6 @@ export default function Home() {
                     'Drag & drop an SVG file here, or click to select'
                   )}
                 </div>
-                {/* <button 
-                  className="bg-white hover:bg-gray-100 text-black font-medium py-2 px-4 rounded transition-colors"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Select File
-                </button> */}
               </div>
               <div className="disclaimer text-gray-500 text-sm text-center">
                 Must be an SVG with a transparent background
