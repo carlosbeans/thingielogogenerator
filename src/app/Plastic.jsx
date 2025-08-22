@@ -190,7 +190,7 @@ export default function Plastic() {
       });
 
       return (
-            <mesh castShadow={true} scale={3.7} position={[0, 1, -1.33]}>
+            <mesh castShadow={true} scale={3.7} position={[0, 1, -.7]}>
                   <planeGeometry args={[1, 1, 1]} />
                   <nodeToyMaterial ref={materialRef} />
             </mesh>
