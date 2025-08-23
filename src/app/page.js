@@ -73,7 +73,7 @@ export default function Home() {
             camera={{ fov: 45 }}
           >
             <color attach="background" args={["#000000"]} />
-            <OrbitControls />
+            <OrbitControls enablePan={false} enableRotate={false} enableZoom={false} enableDamping={true} />
             <Scene />
           </Canvas>
           <div className="logoUploadContainer absolute bottom-0 w-screen flex justify-center">
