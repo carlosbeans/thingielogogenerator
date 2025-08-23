@@ -28,22 +28,14 @@ import { useEffect } from "react";
 // import cloud from drie
 import { Clouds, Cloud, Float } from "@react-three/drei";
 import Plastic from "./Plastic";
+import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader'
 
 export default function Scene() {
   //  const lutTexture = useLoader(THREE.TextureLoader, '/luttt.png')
-  const svgTexture = useLoader(THREE.TextureLoader, "/logo.svg");
-  svgTexture.anisotropy = 16; // Max supported by GPU
+  const svgTexture = useLoader(THREE.TextureLoader, "/logo.png");
   svgTexture.needsUpdate = true;
 
-  // Configure texture settings after it loads
-  // useEffect(() => {
-  //   if (svgTexture) {
-  //     svgTexture.generateMipmaps = false
-  //     svgTexture.minFilter = THREE.LinearFilter
-  //     svgTexture.magFilter = THREE.LinearFilter
-  //     svgTexture.anisotropy = 16
-  //   }
-  // }, [svgTexture])
+
 
   // inverted shader
   const invertedAlphaMaterial = useMemo(() => {
