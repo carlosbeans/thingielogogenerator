@@ -107,7 +107,7 @@ export default function Home() {
 
      const handleFiles = async (files) => {
           const file = files[0];
-          if (file && file.type === "image/svg+xml") {
+          if ((file && file.type === "image/svg+xml") || file.type === "image/png") {
                try {
                     // Check if file already exists (by name and size)
                     const existingFile = storedFiles.find(
@@ -123,6 +123,15 @@ export default function Home() {
 
                     // Read file content
                     const fileContent = await readFileAsText(file);
+
+                    // If you have access to the original file object
+                    const mimeType = file.type; // This will be either 'image/svg+xml' or 'image/png'
+
+                    // Create Blob URL for texture usage
+                    const blob = new Blob([fileContent], { type: mimeType });
+                    const blobUrl = URL.createObjectURL(blob);
+
+                    console.log(blobUrl);
 
                     // Create file object for storage
                     const fileData = {
@@ -309,7 +318,7 @@ export default function Home() {
                                         ref={fileInputRef}
                                         type="file"
                                         className="hidden"
-                                        accept=".svg"
+                                        accept=".svg,.png"
                                         onChange={handleFileInput}
                                    />
 
