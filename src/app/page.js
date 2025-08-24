@@ -43,6 +43,11 @@ export default function Home() {
      useEffect(() => {
           try {
                if (storedFiles.length > 0) {
+                    // Don't save blob URLs to localStorage (they're temporary)
+                    const filesToSave = storedFiles.map((file) => ({
+                         ...file,
+                         blobUrl: undefined,
+                    }));
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(storedFiles));
                } else {
                     localStorage.removeItem(STORAGE_KEY);
@@ -131,13 +136,12 @@ export default function Home() {
                     const blob = new Blob([fileContent], { type: mimeType });
                     const blobUrl = URL.createObjectURL(blob);
 
-                    console.log(blobUrl);
-
                     // Create file object for storage
                     const fileData = {
                          id: Date.now().toString() + "_" + Math.random().toString(36).substr(2, 9),
                          name: file.name,
                          content: fileContent,
+                         blobUrl: blobUrl,
                          size: file.size,
                          lastModified: file.lastModified,
                          uploadDate: new Date().toISOString(),
@@ -188,6 +192,12 @@ export default function Home() {
      // Function to delete stored file
      const deleteStoredFile = (fileId) => {
           const updatedFiles = storedFiles.filter((file) => file.id !== fileId);
+
+          // Revoke blob URL to free memory
+          if (fileToDelete?.blobUrl) {
+               URL.revokeObjectURL(fileToDelete.blobUrl);
+          }
+
           setStoredFiles(updatedFiles);
 
           if (selectedFileId === fileId) {
@@ -200,6 +210,13 @@ export default function Home() {
 
      // Function to clear all stored files
      const clearAllFiles = () => {
+          // Revoke all blob URLs to free memory
+          storedFiles.forEach((file) => {
+               if (file.blobUrl) {
+                    URL.revokeObjectURL(file.blobUrl);
+               }
+          });
+
           setStoredFiles([]);
           setSelectedFileId(null);
           setFileName(null);
@@ -255,6 +272,18 @@ export default function Home() {
 
      const triggerFileInput = () => {
           fileInputRef.current?.click();
+     };
+
+     // Function to get texture URL for the selected file
+     const getTextureUrl = () => {
+          if (!selectedFile?.blobUrl) return null;
+          return selectedFile.blobUrl;
+     };
+
+     // Function to get texture URL for any file by ID
+     const getTextureUrlById = (fileId) => {
+          const file = getStoredFile(fileId);
+          return file?.blobUrl || null;
      };
 
      const selectedFile = selectedFileId ? getStoredFile(selectedFileId) : null;
