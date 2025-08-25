@@ -14,7 +14,7 @@ import {
   ColorAverage,
   Sepia,
 } from "@react-three/postprocessing";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRef } from "react";
 import { BlendFunction } from "postprocessing";
 import { Circle } from "@react-three/drei";
@@ -30,9 +30,27 @@ import { Clouds, Cloud, Float } from "@react-three/drei";
 import Plastic from "./Plastic";
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader'
 
-export default function Scene() {
-  //  const lutTexture = useLoader(THREE.TextureLoader, '/luttt.png')
-  const svgTexture = useLoader(THREE.TextureLoader, "/logo.png");
+export default function Scene({blob}) {
+
+  const [blobPath, setBlobPath] = useState("/logo.png");
+  
+  useEffect(() => {
+    if (!blob) {
+      setBlobPath("/logo.png");
+    } else {
+      const objectUrl = URL.createObjectURL(blob);
+      setBlobPath(objectUrl);
+      
+      // Cleanup function to revoke the object URL
+      return () => {
+        URL.revokeObjectURL(objectUrl);
+      };
+    }
+  }, [blob]); // Only run when blob changes
+
+   const svgTexture = useLoader(THREE.TextureLoader, blobPath);
+  console.log(svgTexture)
+  
   svgTexture.needsUpdate = true;
 
 

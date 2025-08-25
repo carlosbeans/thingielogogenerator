@@ -12,6 +12,7 @@ export default function Home() {
      const [fileName, setFileName] = useState(null);
      const [storedFiles, setStoredFiles] = useState([]);
      const [selectedFileId, setSelectedFileId] = useState(null);
+     const [blob, setBlob] = useState(null);
      const fileInputRef = useRef(null);
      const dropZoneRef = useRef(null);
 
@@ -135,6 +136,8 @@ export default function Home() {
                     // Create Blob URL for texture usage
                     const blob = new Blob([fileContent], { type: mimeType });
                     const blobUrl = URL.createObjectURL(blob);
+
+                    setBlob(blob);
 
                     // Create file object for storage
                     const fileData = {
@@ -313,7 +316,7 @@ export default function Home() {
                                    enableZoom={false}
                                    enableDamping={true}
                               />
-                              <Scene />
+                              <Scene blob={blob} />
                          </Canvas>
 
                          <div className="logoUploadContainer absolute bottom-0 w-screen flex justify-center">
