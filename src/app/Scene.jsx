@@ -191,7 +191,7 @@ export default function Scene({blob}) {
         />
       </Float>
 
-      <mesh transparent castShadow={true} position={[-0.07, 1.37, 0]}>
+      <mesh transparent castShadow={true} position={[-0.07, .6, 0]}>
         <boxGeometry args={[12, 12, 0.01]} />
         <primitive object={invertedAlphaMaterial} attach="material" />
       </mesh>
