@@ -194,12 +194,16 @@ export default function Home() {
 
      // Function to delete stored file
      const deleteStoredFile = (fileId) => {
-          const updatedFiles = storedFiles.filter((file) => file.id == fileId);
+          // Find the file to delete first (for revoking URL)
+          const fileToDelete = storedFiles.find((file) => file.id === fileId);
 
           // Revoke blob URL to free memory
-          if (updatedFiles?.blobUrl) {
+          if (fileToDelete?.blobUrl) {
                URL.revokeObjectURL(fileToDelete.blobUrl);
           }
+
+          // Filter out the file to delete (use !== for strict comparison)
+          const updatedFiles = storedFiles.filter((file) => file.id !== fileId);
 
           setStoredFiles(updatedFiles);
 
