@@ -1,70 +1,70 @@
 "use client";
 
-import React from "react";
-import Test from "./Test";
-import { Points, PointMaterial } from "@react-three/drei";
+import React, { useMemo, useState, useRef, useEffect } from "react";
+import { useLoader, useThree } from "@react-three/fiber";
+import * as THREE from "three";
+import { Circle, Float, Cloud } from "@react-three/drei";
 import {
   EffectComposer,
   Bloom,
   BrightnessContrast,
   GodRays,
   Noise,
-  LUT,
   HueSaturation,
-  ColorAverage,
-  Sepia,
 } from "@react-three/postprocessing";
-import { useMemo, useState } from "react";
-import { useRef } from "react";
-import { BlendFunction } from "postprocessing";
-import { Circle } from "@react-three/drei";
-import { KernelSize } from "postprocessing";
-import { Resizer } from "postprocessing";
-import { MeshTransmissionMaterial } from "@react-three/drei";
-import { useLoader } from "@react-three/fiber";
-import * as THREE from "three";
-import { Ramp, RampType } from "@react-three/postprocessing";
-import { useEffect } from "react";
-// import cloud from drie
-import { Clouds, Cloud, Float } from "@react-three/drei";
+import { BlendFunction, KernelSize } from "postprocessing";
 import Plastic from "./Plastic";
-import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader'
 
-export default function Scene({blob}) {
+export default function Scene({ blob }) {
+  const [textureUrl, setTextureUrl] = useState("/logo.png");
+  const [texture, setTexture] = useState(null);
+  const lightRef = useRef();
+  const [lightReady, setLightReady] = useState(false);
 
-  const [blobPath, setBlobPath] = useState("/logo.png");
-  
+  // Load texture manually instead of using useLoader to avoid hooks issue
+  useEffect(() => {
+    if (!textureUrl) return;
+
+    const loader = new THREE.TextureLoader();
+    loader.load(
+      textureUrl,
+      (loadedTexture) => {
+        loadedTexture.needsUpdate = true;
+        setTexture(loadedTexture);
+      },
+      undefined,
+      (error) => {
+        console.error("Error loading texture:", error);
+        setTexture(null);
+      }
+    );
+  }, [textureUrl]);
+
+  // Handle blob changes and create object URL
   useEffect(() => {
     if (!blob) {
-      setBlobPath("/logo.png");
-    } else {
-      const objectUrl = URL.createObjectURL(blob);
-      setBlobPath(objectUrl);
-      
-      // Cleanup function to revoke the object URL
-      return () => {
-        URL.revokeObjectURL(objectUrl);
-      };
+      setTextureUrl("/logo.png");
+      return;
     }
-  }, [blob]); // Only run when blob changes
 
-   const svgTexture = useLoader(THREE.TextureLoader, blobPath);
-  console.log(svgTexture)
-  
-  svgTexture.needsUpdate = true;
+    const objectUrl = URL.createObjectURL(blob);
+    setTextureUrl(objectUrl);
 
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [blob]);
 
-
-  // inverted shader
+  // inverted shader material
   const invertedAlphaMaterial = useMemo(() => {
-    if (!svgTexture) return null; // Guard against initial render
+    if (!texture || !texture.image) return null;
 
-    const meshSize = [1, 1]; // Box geometry dimensions
-    const textureSize = [svgTexture.image.width, svgTexture.image.height]; // 300 117
+    const meshSize = [1, 1];
+    const textureSize = [texture.image.width, texture.image.height];
 
     return new THREE.ShaderMaterial({
       uniforms: {
-        map: { value: svgTexture },
+        map: { value: texture },
         color: { value: new THREE.Color("black") },
         uMeshSize: { value: new THREE.Vector2(meshSize[0], meshSize[1]) },
         uTextureSize: {
@@ -86,60 +86,41 @@ export default function Scene({blob}) {
         varying vec2 vUv;
 
         void main() {
-          float meshAspect    = uMeshSize.x / uMeshSize.y;       // mesh W/H
-          float textureAspect = uTextureSize.x / uTextureSize.y; // tex  W/H
+          float meshAspect    = uMeshSize.x / uMeshSize.y;
+          float textureAspect = uTextureSize.x / uTextureSize.y;
           
           vec2 scaledUv = vUv;
 
           if (meshAspect > textureAspect) {
-              // Mesh is wider than texture → fit height (pillarbox on sides)
-              float scaleX = meshAspect / textureAspect; // > 1.0
+              float scaleX = meshAspect / textureAspect;
               scaledUv.x = (vUv.x - 0.5) * scaleX + 0.5;
           } else {
-              // Mesh is taller than texture → fit width (letterbox on top/bottom)
-              float scaleY = textureAspect / meshAspect; // > 1.0
+              float scaleY = textureAspect / meshAspect;
               scaledUv.y = (vUv.y - 0.5) * scaleY + 0.5;
           }
 
-          // Apply uniform zoom after aspect ratio correction
           scaledUv = (scaledUv - 0.5) * 4.0 + 0.5;
 
-          
-
-          // Create in-bounds mask to avoid edge smearing
           float inX = step(0.0, scaledUv.x) * step(scaledUv.x, 1.0);
           float inY = step(0.0, scaledUv.y) * step(scaledUv.y, 1.0);
           float inBounds = inX * inY;
           
-          // Sample texture only when inside bounds, else transparent padding
           vec4 texColor = inBounds > 0.5 ? texture2D(map, scaledUv) : vec4(0.0);
-          
-          // Invert alpha from texture
           float invertedAlpha = 1.0 - texColor.a;
           
-          // Optional threshold for alpha cutoff
           if (invertedAlpha < 0.5) {
               discard;
           }
           
-          // Output color with inverted alpha
           gl_FragColor = vec4(color, invertedAlpha);
       }
       `,
       transparent: true,
     });
-  }, [svgTexture]);
+  }, [texture]);
 
-  // Make sure to handle the case where the material is not yet created
-  if (!invertedAlphaMaterial) {
-    return null;
-  }
-
-  const lightRef = useRef();
-
-  const [lightReady, setLightReady] = React.useState(false);
-
-  React.useEffect(() => {
+  // Light ready effect
+  useEffect(() => {
     if (lightRef.current) {
       setLightReady(true);
     }
@@ -148,13 +129,16 @@ export default function Scene({blob}) {
   const particles = useMemo(() => {
     const temp = [];
     for (let i = 0; i < 300; i++) {
-      // Generate x, y, z coordinates (3 values per particle)
-      temp.push((Math.random() - 0.5) * 20); // x
-      temp.push((Math.random() - 0.5) * 20); // y
-      temp.push((Math.random() - 0.5) * 20); // z
+      temp.push((Math.random() - 0.5) * 20);
+      temp.push((Math.random() - 0.5) * 20);
+      temp.push((Math.random() - 0.5) * 20);
     }
     return new Float32Array(temp);
   }, []);
+
+  if (!invertedAlphaMaterial) {
+    return null;
+  }
 
   return (
     <>
@@ -170,15 +154,11 @@ export default function Scene({blob}) {
         <meshBasicMaterial color={"#b3c1eb"} />
       </Circle>
 
-      {/* <Points positions={particles}>
-        <PointMaterial transparent opacity={.1} size={0.02} sizeAttenuation color="black" />
-      </Points> */}
-
       <Float
-        speed={2} // Animation speed (default: 1)
-        rotationIntensity={1.8} // XYZ rotation intensity (default: 1)
+        speed={2}
+        rotationIntensity={1.8}
         floatIntensity={1.8}
-        position={[0, 2, 2.52]} // Up/down float intensity (default: 1)
+        position={[0, 2, 2.52]}
       >
         <Cloud
           opacity={0.03}
@@ -191,7 +171,7 @@ export default function Scene({blob}) {
         />
       </Float>
 
-      <mesh transparent castShadow={true} position={[-0.07, .6, 0]}>
+      <mesh transparent castShadow={true} position={[-0.07, 0.6, 0]}>
         <boxGeometry args={[12, 12, 0.01]} />
         <primitive object={invertedAlphaMaterial} attach="material" />
       </mesh>
@@ -199,18 +179,12 @@ export default function Scene({blob}) {
       <Plastic position={[0, 0, 0]} />
 
       <EffectComposer multisampling={0}>
-        {/* <LUT lut={lutTexture} tetrahedralInterpolation={true}  /> */}
-
-        {/* <Sepia intensity={0.4} blendFunction={BlendFunction.NORMAL} /> */}
-        <BrightnessContrast
-          brightness={0} // brightness. min: -1, max: 1
-          contrast={0.05} // contrast: min -1, max: 1
-        />
+        <BrightnessContrast brightness={0} contrast={0.05} />
 
         <HueSaturation
-          blendFunction={BlendFunction.SCREEN} // blend mode
-          hue={6.4} // hue in radians
-          saturation={0.86} // saturation in radians
+          blendFunction={BlendFunction.SCREEN}
+          hue={6.4}
+          saturation={0.86}
         />
 
         <Bloom
@@ -222,17 +196,15 @@ export default function Scene({blob}) {
         {lightReady && (
           <GodRays
             sun={lightRef}
-            blendFunction={BlendFunction.Screen} // The blend function of this effect.
-            samples={60} // The number of samples per pixel.
-            density={0.8} // The density of the light rays.
-            decay={0.9} // An illumination decay factor.
-            weight={0.4} // A light ray weight factor.
-            exposure={0.1} // A constant attenuation coefficient.
-            clampMax={1} // An upper bound for the saturation of the overall effect.
-            //width={Resizer.AUTO_SIZE} // Render width.
-            //height={Resizer.AUTO_SIZE} // Render height.
-            kernelSize={KernelSize.SMALL} // The blur kernel size. Has no effect if blur is disabled.
-            blur={true} // Whether the god rays should be blurred to reduce artifacts.
+            blendFunction={BlendFunction.Screen}
+            samples={60}
+            density={0.8}
+            decay={0.9}
+            weight={0.4}
+            exposure={0.1}
+            clampMax={1}
+            kernelSize={KernelSize.SMALL}
+            blur={true}
           />
         )}
       </EffectComposer>

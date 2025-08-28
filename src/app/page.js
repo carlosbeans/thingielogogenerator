@@ -113,6 +113,7 @@ export default function Home() {
 
      const handleFiles = async (files) => {
           const file = files[0];
+
           if ((file && file.type === "image/svg+xml") || file.type === "image/png") {
                try {
                     // Check if file already exists (by name and size)
