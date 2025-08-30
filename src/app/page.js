@@ -59,7 +59,6 @@ export default function Home() {
                     const parsedFiles = JSON.parse(stored);
                     setStoredFiles(parsedFiles);
 
-                    // If there's a previously selected file, restore it
                     const lastSelected = localStorage.getItem(STORAGE_KEY + "_selected");
                     if (lastSelected) {
                          const selectedFile = parsedFiles.find((f) => f.id === lastSelected);
@@ -67,21 +66,18 @@ export default function Home() {
                               setSelectedFileId(lastSelected);
                               setFileName(selectedFile.name);
 
-                              // Process the file immediately since we have the data
-                              const fileObject = getStoredFileAsFile(selectedFile);
-                              if (fileObject) {
-                                   handleFiles([fileObject]);
-                              }
+                              // Create data URL directly from stored base64 content
+                              const dataUrl = `data:${selectedFile.type};base64,${selectedFile.content}`;
+                              setBlob(dataUrl);
                          }
                     }
                }
           } catch (error) {
                console.error("Error loading files from localStorage:", error);
-               // Clear corrupted data
                localStorage.removeItem(STORAGE_KEY);
                localStorage.removeItem(STORAGE_KEY + "_selected");
           }
-     }, []); // Empty dependency array - runs only on mount
+     }, []);
 
      // Save files to localStorage whenever storedFiles changes
      useEffect(() => {
@@ -168,66 +164,74 @@ export default function Home() {
                          // File already exists, just select it
                          setSelectedFileId(existingFile.id);
                          setFileName(existingFile.name);
+
+                         // Create data URL from stored base64 content for immediate use
+                         const dataUrl = `data:${existingFile.type};base64,${existingFile.content}`;
+                         setBlob(dataUrl);
                          return;
                     }
 
-                    // Read file content
-                    const fileContent = await readFileAsText(file);
+                    // Read file as array buffer for proper base64 conversion
+                    const arrayBuffer = await file.arrayBuffer();
 
-                    // If you have access to the original file object
-                    const mimeType = file.type; // This will be either 'image/svg+xml' or 'image/png'
+                    // Convert to base64
+                    const base64 = btoa(
+                         new Uint8Array(arrayBuffer).reduce(
+                              (data, byte) => data + String.fromCharCode(byte),
+                              ""
+                         )
+                    );
 
-                    // Create Blob URL for texture usage
-                    const blob = new Blob([fileContent], { type: mimeType });
-                    const blobUrl = URL.createObjectURL(blob);
+                    // Create data URL for immediate texture usage
+                    const dataUrl = `data:${file.type};base64,${base64}`;
+                    setBlob(dataUrl);
 
-                    setBlob(blob);
-
-                    // Create file object for storage
+                    // Create file object for storage with base64 content
                     const fileData = {
                          id: Date.now().toString() + "_" + Math.random().toString(36).substr(2, 9),
                          name: file.name,
-                         content: fileContent,
-                         blobUrl: blobUrl,
+                         content: base64, // Store as base64 string
                          size: file.size,
-                         lastModified: file.lastModified,
+                         type: file.type,
                          uploadDate: new Date().toISOString(),
+                         isBase64: true, // Flag to indicate base64 encoding
                     };
 
                     // Check localStorage quota before adding
-                    const estimatedSize = JSON.stringify(fileData).length * 2; // rough estimate
-                    const currentSize = JSON.stringify(storedFiles).length * 2;
+                    const estimatedSize = fileData.content.length; // Base64 is about 1.37x original size
+                    const currentSize = storedFiles.reduce(
+                         (total, file) => total + file.content.length,
+                         0
+                    );
 
                     // localStorage typically has 5-10MB limit
                     if (currentSize + estimatedSize > 5 * 1024 * 1024) {
                          alert("Storage limit would be exceeded. Please delete some files first.");
+                         URL.revokeObjectURL(dataUrl); // Clean up the data URL
                          return;
                     }
 
                     // Add to stored files
-                    const updatedFiles = [...storedFiles, fileData];
-                    setStoredFiles(updatedFiles);
+                    setStoredFiles((prev) => [...prev, fileData]);
                     setFileName(file.name);
                     setSelectedFileId(fileData.id);
-
-                    //console.log("File stored to localStorage:", fileData.name);
                } catch (error) {
                     console.error("Error processing file:", error);
                     alert("Error processing file: " + error.message);
                }
           } else {
                setFileName(null);
-               alert("Please upload an SVG file");
+               alert("Please upload an SVG or PNG file");
           }
      };
 
-     // Helper function to read file as text
-     const readFileAsText = (file) => {
+     // Replace with arrayBuffer reading for images
+     const readFileAsArrayBuffer = (file) => {
           return new Promise((resolve, reject) => {
                const reader = new FileReader();
                reader.onload = (e) => resolve(e.target.result);
                reader.onerror = (e) => reject(new Error("Failed to read file"));
-               reader.readAsText(file);
+               reader.readAsArrayBuffer(file);
           });
      };
 
@@ -367,27 +371,27 @@ export default function Home() {
                               <Scene blob={blob} />
                          </Canvas>
 
-          <div className="logoUploadContainer absolute bottom-0 w-screen flex justify-center">
-            <div
-              ref={dropZoneRef}
-              className="dragRegion w-1/3  backdrop-blur-sm hover:bg-white/5 p-16 m-24 flex flex-col items-center rounded-lg transition-colors duration-200 border-gray-300"              
-              onClick={triggerFileInput}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                accept=".png"
-                onChange={handleFileInput}
-              />
-              <div className="disclaimer text-gray-500 text-xs text-center">
-                Upload a hi-res transparent PNG
-              </div>
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </div>      
-    </main>
-  );
+                         <div className="logoUploadContainer absolute bottom-0 w-screen flex justify-center">
+                              <div
+                                   ref={dropZoneRef}
+                                   className="dragRegion w-1/3  backdrop-blur-sm hover:bg-white/5 p-16 m-24 flex flex-col items-center rounded-lg transition-colors duration-200 border-gray-300"
+                                   onClick={triggerFileInput}
+                              >
+                                   <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        className="hidden"
+                                        accept=".png"
+                                        onChange={handleFileInput}
+                                   />
+                                   <div className="disclaimer text-gray-500 text-xs text-center">
+                                        Upload a hi-res transparent PNG
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+                    <Footer />
+               </div>
+          </main>
+     );
 }

@@ -16,30 +16,45 @@ import { BlendFunction, KernelSize } from "postprocessing";
 import Plastic from "./Plastic";
 
 export default function Scene({ blob }) {
-  const [textureUrl, setTextureUrl] = useState("/logo.png");
+  const [textureUrl, setTextureUrl] = useState();
   const [texture, setTexture] = useState(null);
   const lightRef = useRef();
   const [lightReady, setLightReady] = useState(false);
 
-  // Load texture manually instead of using useLoader to avoid hooks issue
-  useEffect(() => {
-    if (!textureUrl) return;
 
-    console.log("Loading texture:" + textureUrl);
-    const loader = new THREE.TextureLoader();
-    loader.load(
-      textureUrl,
-      (loadedTexture) => {
+  // Load texture manually instead of using useLoader to avoid hooks issue
+useEffect(() => {
+  if (!textureUrl) return;
+
+  console.log("Loading texture:" + textureUrl);
+  
+  let cancelled = false;
+  const loader = new THREE.TextureLoader();
+  
+  loader.load(
+    textureUrl,
+    (loadedTexture) => {
+      if (!cancelled) {
+        console.log("Loaded texture successfully");
         loadedTexture.needsUpdate = true;
         setTexture(loadedTexture);
-      },
-      undefined,
-      (error) => {
-        //console.error("Error loading texture:", error);
+      }
+    },
+    undefined,
+    (error) => {
+      if (!cancelled) {
+        console.error("Error loading texture:", textureUrl, error);
         setTexture(null);
       }
-    );
-  }, [textureUrl]);
+    }
+  );
+
+  // Cleanup function - cancels the loading if effect re-runs
+  return () => {
+    cancelled = true;
+    console.log("Texture loading cancelled");
+  };
+}, [textureUrl]);
 
   // Handle blob changes and create object URL
   useEffect(() => {
@@ -48,17 +63,19 @@ export default function Scene({ blob }) {
       return;
     }
 
-    const objectUrl = URL.createObjectURL(blob);
-    setTextureUrl(objectUrl);
+    //const objectUrl = URL.createObjectURL(blob);
+    setTextureUrl(blob);
 
     return () => {
-      URL.revokeObjectURL(objectUrl);
+      //URL.revokeObjectURL(objectUrl);
     };
   }, [blob]);
 
   // inverted shader material
   const invertedAlphaMaterial = useMemo(() => {
-    if (!texture || !texture.image) return null;
+    if (!texture || !texture.image) {
+      return null
+    };
 
     const meshSize = [1, 1];
     const textureSize = [texture.image.width, texture.image.height];
