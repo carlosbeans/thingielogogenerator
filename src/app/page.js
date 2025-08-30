@@ -377,7 +377,7 @@ export default function Home() {
                 ref={fileInputRef}
                 type="file"
                 className="hidden"
-                accept="image/png"
+                accept=".png"
                 onChange={handleFileInput}
               />
               <div className="disclaimer text-gray-500 text-xs text-center">
