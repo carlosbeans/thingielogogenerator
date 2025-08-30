@@ -26,4 +26,13 @@ body {
   font-family: "Funnel Sans", sans-serif;
   font-size: 14px;
 }
-  
+.logoUploadContainer {
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+
+  .dragRegion {    
+    border-width: 1px;
+    border-style: dashed;
+    transition: all 0.2s ease-in-out;
+  }
+}

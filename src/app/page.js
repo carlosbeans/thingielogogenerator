@@ -4,6 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import Scene from "./Scene";
 import { OrbitControls } from "@react-three/drei";
 import { useRef, useState, useCallback, useEffect } from "react";
+import Footer from "./Footer";
 
 const STORAGE_KEY = "svg_files_storage";
 
@@ -332,48 +333,24 @@ export default function Home() {
           <div className="logoUploadContainer absolute bottom-0 w-screen flex justify-center">
             <div
               ref={dropZoneRef}
-              className={`dragRegion w-1/3 backdrop-blur-sm bg-white/5 p-16 m-24 flex flex-col items-center rounded-lg transition-colors duration-200 ${
-                isDragging ? "border-blue-500 bg-blue-50/30" : "border-gray-300"
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
+              className="dragRegion w-1/3  backdrop-blur-sm hover:bg-white/5 p-16 m-24 flex flex-col items-center rounded-lg transition-colors duration-200 border-gray-300"              
               onClick={triggerFileInput}
             >
-              <div className="filePreviewContainer text-center mb-4">
-                <div className="text-white bg-black/30 px-4 py-2 rounded-md">
-                  {fileName || "No file selected"}
-                </div>
-                
-              </div>
-
               <input
                 ref={fileInputRef}
                 type="file"
                 className="hidden"
-                accept=".svg,.png"
+                accept="image/png"
                 onChange={handleFileInput}
               />
-
-              <div className="flex flex-col items-center">
-                <div className="text-white mb-4 text-center">
-                  {fileName ? (
-                    ""
-                  ) : isDragging ? (
-                    "Drop your SVG file here"
-                  ) : (
-                    "Drag & drop an SVG file here, or click to select"
-                  )}
-                </div>
-              </div>
-
               <div className="disclaimer text-gray-500 text-xs text-center">
-                For best results, use a transparent PNG or SVG
+                Upload a hi-res transparent PNG
               </div>
             </div>
           </div>
         </div>
-      </div>
+        <Footer />
+      </div>      
     </main>
   );
 }
