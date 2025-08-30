@@ -209,7 +209,7 @@ export default function Home() {
                     setFileName(file.name);
                     setSelectedFileId(fileData.id);
 
-                    console.log("File stored to localStorage:", fileData.name);
+                    //console.log("File stored to localStorage:", fileData.name);
                } catch (error) {
                     console.error("Error processing file:", error);
                     alert("Error processing file: " + error.message);

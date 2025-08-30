@@ -25,6 +25,7 @@ export default function Scene({ blob }) {
   useEffect(() => {
     if (!textureUrl) return;
 
+    console.log("Loading texture:" + textureUrl);
     const loader = new THREE.TextureLoader();
     loader.load(
       textureUrl,
@@ -34,7 +35,7 @@ export default function Scene({ blob }) {
       },
       undefined,
       (error) => {
-        console.error("Error loading texture:", error);
+        //console.error("Error loading texture:", error);
         setTexture(null);
       }
     );
