@@ -26,7 +26,6 @@ export default function Scene({ blob }) {
 useEffect(() => {
   if (!textureUrl) return;
 
-  console.log("Loading texture:" + textureUrl);
   
   let cancelled = false;
   const loader = new THREE.TextureLoader();
@@ -35,7 +34,6 @@ useEffect(() => {
     textureUrl,
     (loadedTexture) => {
       if (!cancelled) {
-        console.log("Loaded texture successfully");
         loadedTexture.needsUpdate = true;
         setTexture(loadedTexture);
       }
@@ -52,7 +50,6 @@ useEffect(() => {
   // Cleanup function - cancels the loading if effect re-runs
   return () => {
     cancelled = true;
-    console.log("Texture loading cancelled");
   };
 }, [textureUrl]);
 
