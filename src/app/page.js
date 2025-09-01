@@ -1,5 +1,6 @@
 "use client";
 
+import "./globals.css";
 import { Canvas } from "@react-three/fiber";
 import Scene from "./Scene";
 import { OrbitControls } from "@react-three/drei";
@@ -15,13 +16,129 @@ import Footer from "./Footer";
 const STORAGE_KEY = "svg_files_storage";
 
 export default function Home() {
+  /* ---- CREATE CONTENT STATES ---- */
+
+  //drag and drop states
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState(null);
   const [storedFiles, setStoredFiles] = useState([]);
   const [selectedFileId, setSelectedFileId] = useState(null);
   const [blob, setBlob] = useState(null);
   const fileInputRef = useRef(null);
-  const dropZoneRef = useRef(null);
+  const dropZoneRef = useRef(null);  
+  const [uploadStatus, setUploadStatus] = useState('preUpload'); // 'preUpload', 'uploading', 'postUpload', 'uploadError'
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileInput = (e) => {
+    const files = e.target.files;
+    if (files.length) {
+      handleFiles(files);
+    }
+  };
+
+  //post-upload CTA hover states
+  const replayVariants = {
+    hover: {
+      rotate: "-180deg",
+      transition: { duration: 0.3, ease: "easeOut" }
+    },
+    initial: {
+      rotate: "0deg",
+      transition: { duration: 0.5, ease: "easeIn" }
+    }
+  }
+
+  const uploadIconVariants = {
+    hover: {
+      y: -4,
+      transition: { duration: 0.3, ease: "easeOut" }
+    },
+    initial: {
+      y: 0,
+      transition: { duration: 0.5, ease: "easeIn" }
+    }
+  }
+
+  //upload content states
+  const uploadStates = {
+    preUpload: (
+      <motion.div
+        ref={dropZoneRef}
+        className="dragRegion text-center w-1/3  hover:backdrop-blur-sm hover:bg-white/2 p-16 m-24 flex flex-col items-center gap-4 rounded-lg transition-colors duration-200"
+        onClick={triggerFileInput}
+        initial="initial" whileHover="hover"
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          accept=".png"
+          onChange={handleFileInput}
+        />
+
+        <motion.div className="arrowContainer rounded-full border-1 border-white  w-10 h-10 flex items-center justify-center">
+          <motion.img
+            variants={uploadIconVariants}
+            src="/icon-uploadArrow.svg"
+            alt="Upload a PNG"
+            className="arrowUp w-10 h-10"
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="text-3xl uppercase"
+        >
+          Thingify your shit
+        </motion.div>
+        <div className="disclaimer text-gray-500 text-xs">
+          Upload a hi-res transparent PNG
+        </div>
+      </motion.div>
+    ),
+    postUpload: (      
+      <motion.div>
+        <div className="flex row justify-between gap-8 place-items-center text-3xl uppercase">
+          <motion.div className="replay flex row gap-2 place-items-center p-2 cursor-pointer" initial="initial" whileHover="hover">
+            <motion.div className="border-1 border-accentColor rounded-full">
+              <motion.img
+                src="/icon-replay.svg"
+                alt="Replay"
+                className="replayIcon w-10 h-10"
+                variants={replayVariants}
+              />
+            </motion.div>
+            <motion.div className="replayText translate-y-1">Replay</motion.div>
+          </motion.div>
+          <motion.div className="newFile flex row gap-2 place-items-center p-2 cursor-pointer" initial="initial" whileHover="hover">
+            <motion.div className="border-1 border-accentColor rounded-full">
+              <motion.img
+                src="/icon-uploadArrow.svg"
+                alt="Upload a new file"
+                className="uploadIcon w-10 h-10"
+                variants={uploadIconVariants}
+              />
+            </motion.div>
+            <motion.div className="newFileText translate-y-1">New File</motion.div>
+          </motion.div>
+        </div>
+      </motion.div>
+    ),
+    uploading: (
+      <motion.div className="uploading text-center text-3xl uppercase">
+        Why don’t we just... wait here for a little while... see what happens?
+      </motion.div>
+    ),
+    uploadError: (
+      <motion.div className="uploadError text-center text-3xl uppercase">
+        Something went wrong
+      </motion.div>
+    ),
+  };
 
   // Function to convert stored content to File object with guaranteed type detection
   function getStoredFileAsFile(fileData) {
@@ -149,18 +266,15 @@ export default function Home() {
     }
   }, []);
 
-  const handleFileInput = useCallback((e) => {
-    const files = e.target.files;
-    if (files.length) {
-      handleFiles(files);
-    }
-  }, []);
-
   const handleFiles = async (files) => {
     const file = files[0];
 
     if (file?.type === "image/svg+xml" || file?.type === "image/png") {
       try {
+
+        // Set to uploading state
+      setUploadStatus('uploading');
+
         // Check if file already exists (by name and size)
         const existingFile = storedFiles.find(
           (f) => f.name === file.name && f.size === file.size
@@ -174,6 +288,9 @@ export default function Home() {
           // Create data URL from stored base64 content for immediate use
           const dataUrl = `data:${existingFile.type};base64,${existingFile.content}`;
           setBlob(dataUrl);
+
+          // Set to post-upload state
+          setUploadStatus('postUpload');
           return;
         }
 
@@ -215,10 +332,9 @@ export default function Home() {
 
         // localStorage typically has 5-10MB limit
         if (currentSize + estimatedSize > 5 * 1024 * 1024) {
-          alert(
-            "Storage limit would be exceeded. Please delete some files first."
-          );
-          URL.revokeObjectURL(dataUrl); // Clean up the data URL
+          alert("Storage limit would be exceeded. Please delete some files first.");
+          URL.revokeObjectURL(dataUrl);
+          setUploadStatus('uploadError');
           return;
         }
 
@@ -226,13 +342,18 @@ export default function Home() {
         setStoredFiles((prev) => [...prev, fileData]);
         setFileName(file.name);
         setSelectedFileId(fileData.id);
+
+        // Set to post-upload state
+        setUploadStatus('postUpload');
       } catch (error) {
         console.error("Error processing file:", error);
         alert("Error processing file: " + error.message);
+        setUploadStatus('uploadError');
       }
     } else {
       setFileName(null);
       alert("Please upload an SVG or PNG file");
+      setUploadStatus('uploadError');
     }
   };
 
@@ -336,10 +457,6 @@ export default function Home() {
     }
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
-
   // Function to get texture URL for the selected file
   const getTextureUrl = () => {
     if (!selectedFile?.blobUrl) return null;
@@ -382,35 +499,15 @@ export default function Home() {
             <Scene blob={blob} />
           </Canvas>
 
-          <AnimatePresence>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="logoUploadContainer absolute h-screen items-center w-screen flex justify-center">
-              <motion.div
-                ref={dropZoneRef}
-                className="dragRegion w-1/3  hover:backdrop-blur-sm hover:bg-white/2 p-16 m-24 flex flex-col items-center gap-4 rounded-lg transition-colors duration-200"
-                onClick={triggerFileInput}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  className="hidden"
-                  accept=".png"
-                  onChange={handleFileInput}
-                />
-                
-                <motion.div className="arrowContainer rounded-full border-1 border-white p-2 w-10 h-10 flex items-center justify-center">
-                  <motion.img
-                    src="/arrowUp.svg"
-                    alt="Arrow Up"
-                    className="arrowUp"
-                  />
-                </motion.div>
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-3xl uppercase">
-                  Thingify your shit
-                </motion.div>                
-                <div className="disclaimer text-gray-500 text-xs text-center">
-                  Upload a hi-res transparent PNG
-                </div>
-              </motion.div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={uploadStatus}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="logoUploadContainer absolute h-screen items-center w-screen flex justify-center"
+            >
+              {uploadStates[uploadStatus]}
             </motion.div>
           </AnimatePresence>
         </div>
