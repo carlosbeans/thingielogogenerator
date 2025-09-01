@@ -386,7 +386,7 @@ export default function Home() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="logoUploadContainer absolute h-screen items-center w-screen flex justify-center">
               <motion.div
                 ref={dropZoneRef}
-                className="dragRegion w-1/3  backdrop-blur-sm hover:bg-white/5 p-16 m-24 flex flex-col items-center gap-4 rounded-lg transition-colors duration-200"
+                className="dragRegion w-1/3  hover:backdrop-blur-sm hover:bg-white/2 p-16 m-24 flex flex-col items-center gap-4 rounded-lg transition-colors duration-200"
                 onClick={triggerFileInput}
               >
                 <input
