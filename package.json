@@ -13,9 +13,11 @@
     "@react-three/fiber": "^9.3.0",
     "@react-three/postprocessing": "^3.0.4",
     "dep": "^0.18.3",
-    "next": "15.4.6",
+    "motion": "^12.23.12",
+    "next": "^15.5.2",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "sass": "^1.91.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
