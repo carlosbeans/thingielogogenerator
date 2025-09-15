@@ -14,12 +14,15 @@ import {
 } from "@react-three/postprocessing";
 import { BlendFunction, KernelSize } from "postprocessing";
 import Plastic from "./Plastic";
+// import useTexture
+import { useTexture } from "@react-three/drei";
 
 export default function Scene({ blob }) {
   const [textureUrl, setTextureUrl] = useState();
   const [texture, setTexture] = useState(null);
   const lightRef = useRef();
   const [lightReady, setLightReady] = useState(false);
+  const dirtTexture = useTexture('dirt.png');
 
 
   // Load texture manually instead of using useLoader to avoid hooks issue
@@ -80,6 +83,7 @@ useEffect(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
         map: { value: texture },
+        dirtTexture: { value: dirtTexture },
         color: { value: new THREE.Color("black") },
         uMeshSize: { value: new THREE.Vector2(meshSize[0], meshSize[1]) },
         uTextureSize: {
@@ -95,6 +99,7 @@ useEffect(() => {
       `,
       fragmentShader: `
         uniform sampler2D map;
+        uniform sampler2D dirtTexture;
         uniform vec3 color;
         uniform vec2 uMeshSize;
         uniform vec2 uTextureSize;
@@ -123,12 +128,24 @@ useEffect(() => {
           vec4 texColor = inBounds > 0.5 ? texture2D(map, scaledUv) : vec4(0.0);
           float invertedAlpha = 1.0 - texColor.a;
           
+          // Sample the dirt texture
+          vec4 dirtSample = texture2D(dirtTexture, vUv);
+          
+          // Convert to grayscale (standard luminance conversion)
+          float dirtIntensity = dot(dirtSample.rgb, vec3(0.299, 0.587, 0.114));
+          
+          // Invert so black becomes 1.0 and white becomes 0.0
+          float dirtFactor = 1.0 - dirtIntensity;
+          
+          // Apply the dirt factor to your color
+          vec3 finalColor = color * dirtFactor;
+          
           if (invertedAlpha < 0.5) {
               discard;
           }
           
-          gl_FragColor = vec4(color, invertedAlpha);
-      }
+          gl_FragColor = vec4(finalColor, invertedAlpha);
+        }
       `,
       transparent: true,
     });
@@ -203,11 +220,12 @@ useEffect(() => {
         />
 
         <Bloom
-          intensity={3.0}
+          intensity={54.0}
           luminanceThreshold={0.9}
           luminanceSmoothing={0.9}
         />
-        <Noise opacity={0.03} scale={0.005} />
+        <Noise opacity={0.06} scale={0.005} />
+   
         {lightReady && (
           <GodRays
             sun={lightRef}
@@ -221,7 +239,9 @@ useEffect(() => {
             kernelSize={KernelSize.SMALL}
             blur={true}
           />
-        )}
+        )}      
+
+  
       </EffectComposer>
     </>
   );
