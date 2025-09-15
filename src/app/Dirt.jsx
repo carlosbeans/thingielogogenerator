@@ -12,7 +12,7 @@ export default function Dirt({ position }) {
             alphaMap={dirt} 
             color="#000000"
             transparent
-            alphaTest={0.1} // This helps with transparency rendering
+            alphaTest={0.01} // This helps with transparency rendering
        />
     </mesh>
   );
