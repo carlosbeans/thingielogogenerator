@@ -14,6 +14,7 @@ import {
 } from "@react-three/postprocessing";
 import { BlendFunction, KernelSize } from "postprocessing";
 import Plastic from "./Plastic";
+import Dirt from "./Dirt";
 // import useTexture
 import { useTexture } from "@react-three/drei";
 
@@ -83,7 +84,6 @@ useEffect(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
         map: { value: texture },
-        dirtTexture: { value: dirtTexture },
         color: { value: new THREE.Color("black") },
         uMeshSize: { value: new THREE.Vector2(meshSize[0], meshSize[1]) },
         uTextureSize: {
@@ -99,7 +99,6 @@ useEffect(() => {
       `,
       fragmentShader: `
         uniform sampler2D map;
-        uniform sampler2D dirtTexture;
         uniform vec3 color;
         uniform vec2 uMeshSize;
         uniform vec2 uTextureSize;
@@ -128,24 +127,12 @@ useEffect(() => {
           vec4 texColor = inBounds > 0.5 ? texture2D(map, scaledUv) : vec4(0.0);
           float invertedAlpha = 1.0 - texColor.a;
           
-          // Sample the dirt texture
-          vec4 dirtSample = texture2D(dirtTexture, vUv);
-          
-          // Convert to grayscale (standard luminance conversion)
-          float dirtIntensity = dot(dirtSample.rgb, vec3(0.299, 0.587, 0.114));
-          
-          // Invert so black becomes 1.0 and white becomes 0.0
-          float dirtFactor = 1.0 - dirtIntensity;
-          
-          // Apply the dirt factor to your color
-          vec3 finalColor = color * dirtFactor;
-          
           if (invertedAlpha < 0.5) {
               discard;
           }
-          
-          gl_FragColor = vec4(finalColor, invertedAlpha);
-        }
+
+          gl_FragColor = vec4(color, invertedAlpha);
+      }
       `,
       transparent: true,
     });
@@ -207,6 +194,8 @@ useEffect(() => {
         <boxGeometry args={[12, 12, 0.01]} />
         <primitive object={invertedAlphaMaterial} attach="material" />
       </mesh>
+
+      <Dirt position={[0, 0, -.2]} />
 
       <Plastic position={[0, 0, 0]} />
 
