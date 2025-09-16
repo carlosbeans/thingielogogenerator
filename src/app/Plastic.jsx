@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { shaderMaterial } from '@react-three/drei'
 import { extend, useFrame } from '@react-three/fiber'
-import { useRef } from 'react'
+import { useRef, useEffect, useState } from 'react'
 
 
 const NodeToyMaterial = shaderMaterial(
@@ -174,53 +174,68 @@ extend({ NodeToyMaterial })
 
 export default function Plastic() {
 
-    const materialRef = useRef()
+   const materialRef = useRef();
+    const audioRef = useRef();
+    const [started, setStarted] = useState(false);
+    const startTimeRef = useRef(0);
+
+    useEffect(() => {
+        audioRef.current = new Audio('/burn.mp3');
+        audioRef.current.volume = 0.8;
+        audioRef.current.preload = 'auto';
+
+        // Initialize animation to -1
+        if (materialRef.current) {
+            materialRef.current._sinTime = new THREE.Vector4(-1, -1, -1, -1);
+            materialRef.current.uniformsNeedUpdate = true;
+        }
+
+        const handleFirstClick = () => {
+            setStarted(true);
+            startTimeRef.current = performance.now() / 1000; // Record start time
+            audioRef.current.play().catch(console.error);
+            document.removeEventListener('click', handleFirstClick);
+        };
+
+        document.addEventListener('click', handleFirstClick);
+
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+            }
+            document.removeEventListener('click', handleFirstClick);
+        };
+    }, []);
 
     useFrame((state) => {
         if (materialRef.current) {
-            const elapsedTime = state.clock.getElapsedTime();
-            const duration = 18.0; // 15 seconds duration
-            
-            let sinTimeValue;
-            
-            if (elapsedTime < duration) {
-            // During the first 15 seconds: go from -1 to 1 linearly
-            const progress = elapsedTime / duration; // 0 to 1
-            sinTimeValue = -1.0 + (2.0 * progress); // -1 to 1
-            } else {
-            // After 15 seconds: stay at 1 forever
-            sinTimeValue = 1.0;
+            if (started) {
+                // Calculate time since audio started
+                const elapsedTime = state.clock.getElapsedTime() - startTimeRef.current;
+                const duration = 25.0;
+                
+                let sinTimeValue;
+                
+                if (elapsedTime < duration) {
+                    const progress = elapsedTime / duration;
+                    sinTimeValue = -1.0 + (2.0 * progress);
+                } else {
+                    sinTimeValue = 1.0;
+                }
+                
+                materialRef.current._sinTime = new THREE.Vector4(
+                    sinTimeValue,
+                    sinTimeValue,
+                    sinTimeValue,
+                    sinTimeValue
+                );
             }
-            
-            materialRef.current._sinTime = new THREE.Vector4(
-            sinTimeValue,    // x: goes from -1 to 1 over 15s, then stays at 1
-            sinTimeValue,    // y: same behavior
-            sinTimeValue,    // z: same behavior  
-            sinTimeValue     // w: same behavior
-            );
-            
-            // Optional: Force uniform update if needed
+            // Always update uniforms, even if not started yet
             materialRef.current.uniformsNeedUpdate = true;
         }
     });
 
-    //   useFrame((state) => {
-    //         if (materialRef.current) {
-    //         const speed = 0.2; // Adjust this value to control speed (lower = slower)
-    //         const time = state.clock.getElapsedTime() * speed; // Slow down time
-            
-    //         materialRef.current._sinTime = new THREE.Vector4(
-    //               Math.sin(time * 1),    // x: base frequency
-    //               Math.sin(time * 2),     // y: 2x frequency
-    //               Math.sin(time * 0.5),    // z: 0.5x frequency
-    //               Math.sin(time * 1.5)     // w: 1.5x frequency
-    //         );
-            
-    //         // Optional: Force uniform update if needed (usually automatic in R3F)
-    //         materialRef.current.uniformsNeedUpdate = true;
-    //         // returns -1 to 1
-    //         }
-    //   });
+
 
       return (
             <mesh castShadow={true} scale={3.7} position={[0, 1, -.7]}>
