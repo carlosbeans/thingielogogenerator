@@ -104,6 +104,8 @@ useEffect(() => {
         uniform vec2 uTextureSize;
         varying vec2 vUv;
 
+        float zoom = 4.0;
+
         void main() {
           float meshAspect    = uMeshSize.x / uMeshSize.y;
           float textureAspect = uTextureSize.x / uTextureSize.y;
@@ -118,7 +120,7 @@ useEffect(() => {
               scaledUv.y = (vUv.y - 0.5) * scaleY + 0.5;
           }
 
-          scaledUv = (scaledUv - 0.5) * 4.0 + 0.5;
+          scaledUv = (scaledUv - 0.5) * zoom + 0.5;
 
           float inX = step(0.0, scaledUv.x) * step(scaledUv.x, 1.0);
           float inY = step(0.0, scaledUv.y) * step(scaledUv.y, 1.0);

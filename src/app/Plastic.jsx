@@ -18,8 +18,9 @@ const NodeToyMaterial = shaderMaterial(
   `,
   // Fragment shader (paste NodeToy code here)
   `
-   // uniforms
+// uniforms
 uniform vec4 _sinTime; 
+float uZoomSize = 1.0; // Added: control zoom size (1.0 = normal, >1.0 = zoom in, <1.0 = zoom out)
 
 // varyings
 varying vec2 nodeVary0; 
@@ -128,7 +129,11 @@ void main() {
     // Your custom logic
     nodeVar1 = (_sinTime.w * 1.6);
     nodeVar2 = (nodeVar1 + 2.4);
-    nodeVar3 = (nodeVary0 * vec2(1, 1) + vec2(0, 0));
+    
+    // MODIFIED: Apply zoom effect from center using uZoomSize
+    vec2 zoomedUv = (nodeVary0 - 0.5) * uZoomSize + 0.5;
+    nodeVar3 = (zoomedUv * vec2(1, 1) + vec2(0, 0));
+    
     nodeVar4 = distance(vec4(nodeVar3.xy, 0.0, 1.0), vec4(0.5, 0.5, 0, 1));
     nodeVar5 = (1.0 - nodeVar4);
     nodeVar6 = (nodeVar2 * nodeVar5);
@@ -161,7 +166,6 @@ void main() {
     // Final output
     gl_FragColor = vec4(nodeVar19, nodeVar17);
 }
-
 
   `
 )
