@@ -172,7 +172,7 @@ void main() {
 
 extend({ NodeToyMaterial })
 
-export default function Plastic() {
+export default function Plastic({ uploadStatus }) {
 
    const materialRef = useRef();
     const audioRef = useRef();
@@ -189,23 +189,29 @@ export default function Plastic() {
             materialRef.current._sinTime = new THREE.Vector4(-1, -1, -1, -1);
             materialRef.current.uniformsNeedUpdate = true;
         }
+    }, []);
 
-        const handleFirstClick = () => {
+    useEffect(() => {
+        if (uploadStatus === 'postUpload') {
+           
             setStarted(true);
             startTimeRef.current = performance.now() / 1000; // Record start time
             audioRef.current.play().catch(console.error);
-            document.removeEventListener('click', handleFirstClick);
-        };
+            //document.removeEventListener('click', handleFirstClick);
+                
+            //const handleFirstClick = () => { 
+            //};
 
-        document.addEventListener('click', handleFirstClick);
+            //document.addEventListener('click', handleFirstClick);
 
-        return () => {
-            if (audioRef.current) {
-                audioRef.current.pause();
-            }
-            document.removeEventListener('click', handleFirstClick);
-        };
-    }, []);
+            return () => {
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                }
+                //document.removeEventListener('click', handleFirstClick);
+            };
+        }
+    }, [uploadStatus]);
 
     useFrame((state) => {
         if (materialRef.current) {

@@ -505,7 +505,7 @@ export default function Home() {
                                    enableZoom={false}
                                    enableDamping={true}
                               />
-                              <Scene blob={blob} />
+                              <Scene blob={blob} uploadStatus={uploadStatus} />
                          </Canvas>
 
                          <AnimatePresence mode="wait">
