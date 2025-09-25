@@ -172,9 +172,9 @@ void main() {
 
 extend({ NodeToyMaterial })
 
-export default function Plastic({ uploadStatus }) {
+export default function Plastic({ uploadStatus, setShowCTAs }) {
 
-   const materialRef = useRef();
+    const materialRef = useRef();
     const audioRef = useRef();
     const [started, setStarted] = useState(false);
     const startTimeRef = useRef(0);
@@ -196,19 +196,12 @@ export default function Plastic({ uploadStatus }) {
            
             setStarted(true);
             startTimeRef.current = performance.now() / 1000; // Record start time
-            audioRef.current.play().catch(console.error);
-            //document.removeEventListener('click', handleFirstClick);
-                
-            //const handleFirstClick = () => { 
-            //};
-
-            //document.addEventListener('click', handleFirstClick);
+            audioRef.current.play().catch(console.error);            
 
             return () => {
                 if (audioRef.current) {
                     audioRef.current.pause();
-                }
-                //document.removeEventListener('click', handleFirstClick);
+                }                
             };
         }
     }, [uploadStatus]);
@@ -221,12 +214,16 @@ export default function Plastic({ uploadStatus }) {
                 const duration = 25.0;
                 
                 let sinTimeValue;
+                if (elapsedTime < (duration - 2)) {
+                    //trigger the render of the replay and new file CTAs
+                    setShowCTAs(true);
+                }
                 
                 if (elapsedTime < duration) {
                     const progress = elapsedTime / duration;
                     sinTimeValue = -1.0 + (2.0 * progress);
                 } else {
-                    sinTimeValue = 1.0;
+                    sinTimeValue = 1.0;                    
                 }
                 
                 materialRef.current._sinTime = new THREE.Vector4(
@@ -240,8 +237,6 @@ export default function Plastic({ uploadStatus }) {
             materialRef.current.uniformsNeedUpdate = true;
         }
     });
-
-
 
       return (
             <mesh castShadow={true} scale={3.7} position={[0, 1, -.7]}>

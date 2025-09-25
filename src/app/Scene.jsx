@@ -18,44 +18,42 @@ import Dirt from "./Dirt";
 // import useTexture
 import { useTexture } from "@react-three/drei";
 
-export default function Scene({ blob, uploadStatus }) {
+export default function Scene({ blob, uploadStatus, setShowCTAs }) {
   const [textureUrl, setTextureUrl] = useState();
   const [texture, setTexture] = useState(null);
   const lightRef = useRef();
   const [lightReady, setLightReady] = useState(false);
-  const dirtTexture = useTexture('dirt.png');
-
+  const dirtTexture = useTexture("dirt.png"); 
 
   // Load texture manually instead of using useLoader to avoid hooks issue
-useEffect(() => {
-  if (!textureUrl) return;
+  useEffect(() => {
+    if (!textureUrl) return;
 
-  
-  let cancelled = false;
-  const loader = new THREE.TextureLoader();
-  
-  loader.load(
-    textureUrl,
-    (loadedTexture) => {
-      if (!cancelled) {
-        loadedTexture.needsUpdate = true;
-        setTexture(loadedTexture);
-      }
-    },
-    undefined,
-    (error) => {
-      if (!cancelled) {
-        console.error("Error loading texture:", textureUrl, error);
-        setTexture(null);
-      }
-    }
-  );
+    let cancelled = false;
+    const loader = new THREE.TextureLoader();
 
-  // Cleanup function - cancels the loading if effect re-runs
-  return () => {
-    cancelled = true;
-  };
-}, [textureUrl]);
+    loader.load(
+      textureUrl,
+      (loadedTexture) => {
+        if (!cancelled) {
+          loadedTexture.needsUpdate = true;
+          setTexture(loadedTexture);
+        }
+      },
+      undefined,
+      (error) => {
+        if (!cancelled) {
+          console.error("Error loading texture:", textureUrl, error);
+          setTexture(null);
+        }
+      }
+    );
+
+    // Cleanup function - cancels the loading if effect re-runs
+    return () => {
+      cancelled = true;
+    };
+  }, [textureUrl]);
 
   // Handle blob changes and create object URL
   useEffect(() => {
@@ -75,8 +73,8 @@ useEffect(() => {
   // inverted shader material
   const invertedAlphaMaterial = useMemo(() => {
     if (!texture || !texture.image) {
-      return null
-    };
+      return null;
+    }
 
     const meshSize = [1, 1];
     const textureSize = [texture.image.width, texture.image.height];
@@ -197,9 +195,9 @@ useEffect(() => {
         <primitive object={invertedAlphaMaterial} attach="material" />
       </mesh>
 
-      <Dirt position={[0, 0, -.2]} />
+      <Dirt position={[0, 0, -0.2]} />
 
-      <Plastic position={[0, 0, 0]} uploadStatus={uploadStatus} />
+      <Plastic position={[0, 0, 0]} uploadStatus={uploadStatus} setShowCTAs={setShowCTAs} />
 
       <EffectComposer multisampling={0}>
         <BrightnessContrast brightness={0} contrast={0.05} />
@@ -216,7 +214,7 @@ useEffect(() => {
           luminanceSmoothing={0.9}
         />
         <Noise opacity={0.06} scale={0.005} />
-   
+
         {lightReady && (
           <GodRays
             sun={lightRef}
@@ -230,9 +228,7 @@ useEffect(() => {
             kernelSize={KernelSize.SMALL}
             blur={true}
           />
-        )}      
-
-  
+        )}
       </EffectComposer>
     </>
   );
