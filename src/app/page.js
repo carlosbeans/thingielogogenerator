@@ -280,8 +280,8 @@ export default function Home() {
           const dataUrl = `data:${existingFile.type};base64,${existingFile.content}`;
           setBlob(dataUrl);
 
-          // Wait for 5 seconds before finishing
-          await new Promise(resolve => setTimeout(resolve, 5000));
+          // Wait for 3 seconds before finishing
+          await new Promise(resolve => setTimeout(resolve, 3000));
 
           // Set to post-upload state
           setUploadStatus("postUpload");          
