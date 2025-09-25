@@ -214,16 +214,16 @@ export default function Plastic({ uploadStatus, setShowCTAs }) {
                 const duration = 25.0;
                 
                 let sinTimeValue;
-                if (elapsedTime < (duration - 2)) {
-                    //trigger the render of the replay and new file CTAs
-                    setShowCTAs(true);
-                }
-                
+              
                 if (elapsedTime < duration) {
                     const progress = elapsedTime / duration;
                     sinTimeValue = -1.0 + (2.0 * progress);
+
+                    if(elapsedTime > (duration - 8)) { 
+                        setShowCTAs(true);  // this shows the restart / new file buttons
+                    }
                 } else {
-                    sinTimeValue = 1.0;                    
+                    sinTimeValue = 1.0;   
                 }
                 
                 materialRef.current._sinTime = new THREE.Vector4(
