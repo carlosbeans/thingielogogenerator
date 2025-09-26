@@ -103,7 +103,7 @@ export default function Home() {
                     </div>
                </motion.div>
           ),
-          postUpload: (
+          animationComplete: (
                <motion.div>
                     <div className="flex row justify-between gap-21 place-items-center text-3xl uppercase">
                          <motion.div
@@ -188,6 +188,13 @@ export default function Home() {
 
           return file;
      }
+
+     // useEffect to setUpladStatus to "animationComplete" when showCTAs is true
+     useEffect(() => {
+          if (showCTAs) {
+               setUploadStatus("animationComplete");
+          }
+     }, [showCTAs]);
 
      // Load files from localStorage on component mount
      useEffect(() => {
