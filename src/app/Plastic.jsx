@@ -191,6 +191,8 @@ export default function Plastic({ uploadStatus, setShowCTAs }) {
         }
     }, []);
 
+
+    // plays audio and sets started when uploadStatus is postUpload
     useEffect(() => {
         if (uploadStatus === 'postUpload') {
            

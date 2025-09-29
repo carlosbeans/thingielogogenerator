@@ -63,6 +63,12 @@ export default function Home() {
           },
      };
 
+     const replayHandler = () => {
+          console.log("Replay clicked");
+          setUploadStatus("postUpload");
+          setShowCTAs(true);
+     };
+
      //upload content states
      const uploadStates = {
           preUpload: (
@@ -110,6 +116,7 @@ export default function Home() {
                               className="replay flex row gap-8 place-items-center p-2"
                               initial="initial"
                               whileHover="hover"
+                              onClick={replayHandler}
                          >
                               <motion.div className="border-1 border-accentColor rounded-full">
                                    <motion.img
