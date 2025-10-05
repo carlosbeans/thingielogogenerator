@@ -18,7 +18,7 @@ import Dirt from "./Dirt";
 // import useTexture
 import { useTexture } from "@react-three/drei";
 
-export default function Scene({ blob, uploadStatus, setShowCTAs }) {
+export default function Scene({ blob, uploadStatus, setShowCTAs, setUploadStatus }) {
   const [textureUrl, setTextureUrl] = useState();
   const [texture, setTexture] = useState(null);
   const lightRef = useRef();
@@ -197,7 +197,7 @@ export default function Scene({ blob, uploadStatus, setShowCTAs }) {
 
       <Dirt position={[0, 0, -0.2]} />
 
-      <Plastic position={[0, 0, 0]} uploadStatus={uploadStatus} setShowCTAs={setShowCTAs} />
+      <Plastic position={[0, 0, 0]} uploadStatus={uploadStatus} setShowCTAs={setShowCTAs} setUploadStatus={setUploadStatus} />
 
       <EffectComposer multisampling={0}>
         <BrightnessContrast brightness={0} contrast={0.05} />

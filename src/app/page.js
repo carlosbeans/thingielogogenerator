@@ -66,7 +66,8 @@ export default function Home() {
      const replayHandler = () => {
           console.log("Replay clicked");
           setUploadStatus("postUpload");
-          setShowCTAs(true);
+          console.log("uploadStatus=" + uploadStatus);
+          //setShowCTAs(true);
      };
 
      //upload content states
@@ -198,9 +199,9 @@ export default function Home() {
 
      // useEffect to setUpladStatus to "animationComplete" when showCTAs is true
      useEffect(() => {
-          if (showCTAs) {
-               setUploadStatus("animationComplete");
-          }
+          // if (showCTAs) {
+          //     setUploadStatus("animationComplete");
+          //  }
      }, [showCTAs]);
 
      // Load files from localStorage on component mount
@@ -500,6 +501,7 @@ export default function Home() {
                                    blob={blob}
                                    uploadStatus={uploadStatus}
                                    setShowCTAs={setShowCTAs}
+                                   setUploadStatus={setUploadStatus}
                               />
                          </Canvas>
 

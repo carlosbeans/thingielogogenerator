@@ -172,7 +172,7 @@ void main() {
 
 extend({ NodeToyMaterial })
 
-export default function Plastic({ uploadStatus, setShowCTAs }) {
+export default function Plastic({ uploadStatus, setShowCTAs, setUploadStatus }) {
 
     const materialRef = useRef();
     const audioRef = useRef();
@@ -222,7 +222,8 @@ export default function Plastic({ uploadStatus, setShowCTAs }) {
                     sinTimeValue = -1.0 + (2.0 * progress);
 
                     if(elapsedTime > (duration - 8)) { 
-                        setShowCTAs(true);  // this shows the restart / new file buttons
+                        //setShowCTAs(true);  // this shows the restart / new file buttons
+                        setUploadStatus("animationComplete");
                     }
                 } else {
                     sinTimeValue = 1.0;   
