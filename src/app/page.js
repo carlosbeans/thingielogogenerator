@@ -111,8 +111,8 @@ export default function Home() {
                </motion.div>
           ),
           animationComplete: (
-               <motion.div>
-                    <div className="flex row justify-between gap-21 place-items-center text-3xl uppercase">
+               <motion.div className="absolute bottom-80">
+                    <div className="flex row justify-between gap-12 place-items-center text-3xl uppercase">
                          <motion.div
                               className="replay flex row gap-8 place-items-center p-2"
                               initial="initial"
@@ -127,12 +127,12 @@ export default function Home() {
                                         variants={replayVariants}
                                    />
                               </motion.div>
-                              <motion.div className="replayText translate-y-1 stretch">
+                              <motion.div className="text-xl replayText translate-y-1 stretch cursor-pointer">
                                    Replay
                               </motion.div>
                          </motion.div>
                          <motion.div
-                              className="newFile flex row gap-8 place-items-center p-2 cursor-pointer"
+                              className="newFile flex row gap-8 place-items-center p-2 "
                               initial="initial"
                               whileHover="hover"
                          >
@@ -144,7 +144,7 @@ export default function Home() {
                                         variants={uploadIconVariants}
                                    />
                               </motion.div>
-                              <motion.div className="newFileText translate-y-1 stretch">
+                              <motion.div className="text-xl newFileText translate-y-1 stretch cursor-pointer">
                                    New File
                               </motion.div>
                          </motion.div>
