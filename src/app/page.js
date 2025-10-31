@@ -67,7 +67,6 @@ export default function Home() {
     console.log("Replay clicked");
     setUploadStatus("postUpload");
     console.log("uploadStatus=" + uploadStatus);
-    //setShowCTAs(true);
   };
 
   //upload content states
@@ -75,7 +74,7 @@ export default function Home() {
     preUpload: (
       <motion.div
         ref={dropZoneRef}
-        className="dragRegion text-center w-1/3  hover:backdrop-blur-sm hover:bg-white/2 p-16 m-24 flex flex-col items-center gap-4 rounded-lg transition-colors duration-200"
+        className="dragRegion text-center hover:backdrop-blur-sm hover:bg-white/2 p-24 flex flex-col items-center gap-4 rounded-lg transition-colors duration-200"
         onClick={triggerFileInput}
         initial="initial"
         whileHover="hover"
@@ -103,7 +102,7 @@ export default function Home() {
           exit={{ opacity: 0 }}
           className="text-3xl uppercase stretch mt-1 color-white"
         >
-          Thingify your shit
+          Thingify your logo
         </motion.div>
         <div className="disclaimer text-gray-500 text-xs uppercase tracking-wider">
           Upload a hi-res transparent PNG
@@ -114,7 +113,7 @@ export default function Home() {
       <motion.div className="absolute bottom-[25%]">
         <div className="flex row justify-between gap-12 place-items-center text-3xl uppercase">
           <motion.div
-            className="replay flex row gap-8 place-items-center p-2"
+            className="replay flex row gap-6 place-items-center p-2 cursor-pointer"
             initial="initial"
             whileHover="hover"
             onClick={replayHandler}
@@ -127,11 +126,11 @@ export default function Home() {
                 variants={replayVariants}
               />
             </motion.div>
-            <motion.div className="text-xl replayText translate-y-1 stretch cursor-pointer">
+            <motion.div className="text-xl replayText translate-y-1 stretch">
               Replay
             </motion.div>
           </motion.div>
-          <motion.div
+          {/* <motion.div
             className="newFile flex row gap-8 place-items-center p-2 "
             initial="initial"
             whileHover="hover"
@@ -146,8 +145,8 @@ export default function Home() {
             </motion.div>
             <motion.div className="text-xl newFileText translate-y-1 stretch cursor-pointer">
               New File
-            </motion.div> */}
-          </motion.div>
+            </motion.div> 
+          </motion.div> */}
         </div>
       </motion.div>
     ),
@@ -198,13 +197,6 @@ export default function Home() {
 
     return file;
   }
-
-  // useEffect to setUpladStatus to "animationComplete" when showCTAs is true
-  useEffect(() => {
-    // if (showCTAs) {
-    //     setUploadStatus("animationComplete");
-    //  }
-  }, [showCTAs]);
 
   // Load files from localStorage on component mount
   useEffect(() => {
