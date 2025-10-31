@@ -153,7 +153,7 @@ export default function Home() {
           ),
           uploading: (
                <motion.div className="uploading text-center text-3xl uppercase">
-                    Why don’t we just... wait here for a little while... see what happens?
+                    Why don’t we just... <br />wait here for a little while... <br />see what happens?
                </motion.div>
           ),
           uploadError: (
