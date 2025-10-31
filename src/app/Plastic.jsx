@@ -1,8 +1,7 @@
-import * as THREE from 'three'
-import { shaderMaterial } from '@react-three/drei'
-import { extend, useFrame } from '@react-three/fiber'
-import { useRef, useEffect, useState } from 'react'
-
+import * as THREE from "three";
+import { shaderMaterial } from "@react-three/drei";
+import { extend, useFrame } from "@react-three/fiber";
+import { useRef, useEffect, useState } from "react";
 
 const NodeToyMaterial = shaderMaterial(
   {
@@ -168,83 +167,84 @@ void main() {
 }
 
   `
-)
+);
 
-extend({ NodeToyMaterial })
+extend({ NodeToyMaterial });
 
-export default function Plastic({ uploadStatus, setShowCTAs, setUploadStatus }) {
+export default function Plastic({
+  uploadStatus,
+  setShowCTAs,
+  setUploadStatus,
+}) {
+  const materialRef = useRef();
+  const audioRef = useRef();
+  const [started, setStarted] = useState(false);
+  const startTimeRef = useRef(0);
 
-    const materialRef = useRef();
-    const audioRef = useRef();
-    const [started, setStarted] = useState(false);
-    const startTimeRef = useRef(0);
+  useEffect(() => {
+    audioRef.current = new Audio("/burn.mp3");
+    audioRef.current.volume = 0.8;
+    audioRef.current.preload = "auto";
 
-    useEffect(() => {
-        audioRef.current = new Audio('/burn.mp3');
-        audioRef.current.volume = 0.8;
-        audioRef.current.preload = 'auto';
+    // Initialize animation to -1
+    if (materialRef.current) {
+      materialRef.current._sinTime = new THREE.Vector4(-1, -1, -1, -1);
+      materialRef.current.uniformsNeedUpdate = true;
+    }
+  }, []);
 
-        // Initialize animation to -1
-        if (materialRef.current) {
-            materialRef.current._sinTime = new THREE.Vector4(-1, -1, -1, -1);
-            materialRef.current.uniformsNeedUpdate = true;
+  // plays audio and sets started when uploadStatus is postUpload
+  useEffect(() => {
+    if (uploadStatus === "postUpload") {
+      setStarted(true);
+      startTimeRef.current = performance.now() / 1000; // Record start time
+      audioRef.current.play().catch(console.error);
+
+      return () => {
+        if (audioRef.current) {
+          audioRef.current.pause();
         }
-    }, []);
+      };
+    }
+  }, [uploadStatus]);
 
+  useFrame((state) => {
+    if (materialRef.current) {
+      if (started) {
+        // Calculate time since audio started
+        const elapsedTime = state.clock.getElapsedTime() - startTimeRef.current;
+        const duration = 25.0;
 
-    // plays audio and sets started when uploadStatus is postUpload
-    useEffect(() => {
-        if (uploadStatus === 'postUpload') {
-           
-            setStarted(true);
-            startTimeRef.current = performance.now() / 1000; // Record start time
-            audioRef.current.play().catch(console.error);            
+        let sinTimeValue;
 
-            return () => {
-                if (audioRef.current) {
-                    audioRef.current.pause();
-                }                
-            };
+        if (elapsedTime < duration) {
+          const progress = elapsedTime / duration;
+          sinTimeValue = -1.0 + 2.0 * progress;
+
+          if (elapsedTime > duration - 12) {
+            //setShowCTAs(true);
+            setUploadStatus("animationComplete"); // this shows the restart / new file buttons
+          }
+        } else {
+          sinTimeValue = 1.0;
         }
-    }, [uploadStatus]);
 
-    useFrame((state) => {
-        if (materialRef.current) {
-            if (started) {
-                // Calculate time since audio started
-                const elapsedTime = state.clock.getElapsedTime() - startTimeRef.current;
-                const duration = 25.0;
-                
-                let sinTimeValue;
-              
-                if (elapsedTime < duration) {
-                    const progress = elapsedTime / duration;
-                    sinTimeValue = -1.0 + (2.0 * progress);
+        materialRef.current._sinTime = new THREE.Vector4(
+          sinTimeValue,
+          sinTimeValue,
+          sinTimeValue,
+          sinTimeValue
+        );
+      }
+      // Always update uniforms, even if not started yet
+      materialRef.current.uniformsNeedUpdate = true;
+    }
+  });
 
-                    if(elapsedTime > (duration - 8)) { 
-                        //setShowCTAs(true);  // this shows the restart / new file buttons
-                        setUploadStatus("animationComplete");
-                    }
-                } else {
-                    sinTimeValue = 1.0;   
-                }
-                
-                materialRef.current._sinTime = new THREE.Vector4(
-                    sinTimeValue,
-                    sinTimeValue,
-                    sinTimeValue,
-                    sinTimeValue
-                );
-            }
-            // Always update uniforms, even if not started yet
-            materialRef.current.uniformsNeedUpdate = true;
-        }
-    });
-
-      return (
-            <mesh castShadow={true} scale={3.7} position={[0, 1, -.7]}>
-                  <planeGeometry args={[1, 1, 1]} />
-                  <nodeToyMaterial ref={materialRef} />
-            </mesh>
-      )
+  return (
+    <mesh castShadow={true} scale={3.7} position={[0, 1, -0.7]}>
+      <planeGeometry args={[1, 1, 1]} />
+      <nodeToyMaterial ref={materialRef} />
+    </mesh>
+  );
 }
