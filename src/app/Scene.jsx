@@ -21,7 +21,7 @@ import { useTexture } from "@react-three/drei";
 export default function Scene({ blob, uploadStatus, setShowCTAs, setUploadStatus }) {
   const [textureUrl, setTextureUrl] = useState();
   const [texture, setTexture] = useState(null);
-  const lightRef = useRef();
+  const [light, setLight] = useState();
   const [lightReady, setLightReady] = useState(false);
   const dirtTexture = useTexture("dirt.png"); 
 
@@ -138,12 +138,6 @@ export default function Scene({ blob, uploadStatus, setShowCTAs, setUploadStatus
     });
   }, [texture]);
 
-  // Light ready effect
-  useEffect(() => {
-    if (lightRef.current) {
-      setLightReady(true);
-    }
-  }, []);
 
   const particles = useMemo(() => {
     const temp = [];
@@ -164,7 +158,12 @@ export default function Scene({ blob, uploadStatus, setShowCTAs, setUploadStatus
       <ambientLight intensity={10} />
 
       <Circle
-        ref={lightRef}
+        ref={(el) => {
+          if (el) {
+            setLight(el);
+            setLightReady(true);
+          }
+        }}
         args={[25, 25]}
         position={[0, 0, -16]}
         transparent={true}
@@ -217,7 +216,7 @@ export default function Scene({ blob, uploadStatus, setShowCTAs, setUploadStatus
 
         {lightReady && (
           <GodRays
-            sun={lightRef}
+            sun={light}
             blendFunction={BlendFunction.Screen}
             samples={60}
             density={0.8}
